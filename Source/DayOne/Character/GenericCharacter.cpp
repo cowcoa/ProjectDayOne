@@ -2,7 +2,6 @@
 
 
 #include "GenericCharacter.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 
