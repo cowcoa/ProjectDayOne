@@ -27,5 +27,17 @@ void UGenericAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Speed = Velocity.Size();
 
 	bIsInAir = Character->GetCharacterMovement()->IsFalling();
-	BIsAccelerating = Character->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
+	bIsAccelerating = Character->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			15.f,
+			FColor::Blue,
+			FString::Printf(TEXT("Character speed: %f, falling: %s, accelerating: %s"), Speed, (bIsInAir ? TEXT("true") : TEXT("false")), (bIsAccelerating ? TEXT("true") : TEXT("false")))
+		);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Character speed: %f, falling: %s, accelerating: %s"), Speed, (bIsInAir ? TEXT("true") : TEXT("false")), (bIsAccelerating ? TEXT("true") : TEXT("false")));
 }

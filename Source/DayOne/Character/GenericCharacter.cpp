@@ -13,7 +13,7 @@ AGenericCharacter::AGenericCharacter()
 
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
 	CameraArm->SetupAttachment(RootComponent);
-	CameraArm->TargetArmLength = 600.f;
+	CameraArm->TargetArmLength = 800.f;
 	CameraArm->bUsePawnControlRotation = true;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
