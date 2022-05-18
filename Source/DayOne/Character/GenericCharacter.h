@@ -29,6 +29,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class UCameraComponent* Camera;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"));
+	class UWidgetComponent* OverheadWidget;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
