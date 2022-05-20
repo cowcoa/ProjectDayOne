@@ -37,7 +37,28 @@ AGenericCharacter::AGenericCharacter()
 void AGenericCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+}
+
+// Called every frame
+void AGenericCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+// Called to bind functionality to input
+void AGenericCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (PlayerInputComponent)
+	{
+		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ThisClass::Jump);
+		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ThisClass::StopJumping);
+		PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::OnMoveForward);
+		PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::OnMoveRight);
+		PlayerInputComponent->BindAxis("Turn", this, &ThisClass::OnTurn);
+		PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::OnLookUp);
+	}
 }
 
 // Process player input.
@@ -70,27 +91,3 @@ void AGenericCharacter::OnLookUp(float Value)
 {
 	AddControllerPitchInput(Value);
 }
-
-// Called every frame
-void AGenericCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void AGenericCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	if (PlayerInputComponent)
-	{
-		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ThisClass::Jump);
-		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ThisClass::StopJumping);
-		PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::OnMoveForward);
-		PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::OnMoveRight);
-		PlayerInputComponent->BindAxis("Turn", this, &ThisClass::OnTurn);
-		PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::OnLookUp);
-	}
-}
-
