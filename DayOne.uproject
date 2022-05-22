@@ -30,6 +30,10 @@
 				"Mac",
 				"Linux"
 			]
+		},
+		{
+			"Name": "GameLiftServerSDK",
+			"Enabled": true
 		}
 	]
 }

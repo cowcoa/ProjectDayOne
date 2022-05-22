@@ -13,5 +13,10 @@ UCLASS()
 class DAYONE_API ADayOneGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	virtual void InitGameState() override;
+
+private:
+	void InitGameLift();
 };
