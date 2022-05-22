@@ -15,8 +15,12 @@ class DAYONE_API ADayOneGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+
 	virtual void InitGameState() override;
 
 private:
 	void InitGameLift();
+
+	class UGameUserSettings* GetGameUserSettings();
 };

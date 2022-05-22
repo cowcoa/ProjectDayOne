@@ -3,9 +3,24 @@
 
 #include "DayOneGameModeBase.h"
 #include "GameLiftServerSDK.h"
+#include "GameFramework/GameUserSettings.h"
+
+void ADayOneGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+	/*
+	UGameUserSettings* Settings = GetGameUserSettings(); // note we are using the function defined above
+	if (Settings != nullptr)
+	{
+		Settings->SetFullscreenMode(EWindowMode::Windowed);
+		Settings->ApplyResolutionSettings(true);
+	}
+	*/
+}
 
 void ADayOneGameModeBase::InitGameState()
 {
+	Super::InitGameState();
 	UE_LOG(LogTemp, Warning, TEXT("InitGameState....!!!!-------"));
 	InitGameLift();
 }
@@ -62,4 +77,13 @@ void ADayOneGameModeBase::InitGameLift()
 #endif
 
 #endif
+}
+
+UGameUserSettings* ADayOneGameModeBase::GetGameUserSettings()
+{
+	if (GEngine != nullptr)
+	{
+		return GEngine->GameUserSettings;
+	}
+	return nullptr;
 }

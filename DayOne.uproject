@@ -35,5 +35,9 @@
 			"Name": "GameLiftServerSDK",
 			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"Android",
+		"Windows"
 	]
 }
