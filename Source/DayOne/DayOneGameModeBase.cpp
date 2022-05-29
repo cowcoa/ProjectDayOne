@@ -4,6 +4,8 @@
 #include "DayOneGameModeBase.h"
 #include "GameLiftServerSDK.h"
 #include "GameFramework/GameUserSettings.h"
+#include "Kismet/KismetStringLibrary.h"
+#include "GameFramework/PlayerController.h"
 
 void ADayOneGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
@@ -22,10 +24,10 @@ void ADayOneGameModeBase::InitGameState()
 {
 	Super::InitGameState();
 	UE_LOG(LogTemp, Warning, TEXT("InitGameState....!!!!-------"));
-	InitGameLift();
+	//InitGameLift();
 }
 
-void ADayOneGameModeBase::InitGameLift()
+void ADayOneGameModeBase::InitGameLift() const
 {
 #if UE_SERVER
 	UE_LOG(LogTemp, Warning, TEXT("InitGameLift in DS.....!!!!!+++++"));
@@ -78,6 +80,28 @@ void ADayOneGameModeBase::InitGameLift()
 
 #endif
 }
+
+/*
+void ADayOneGameModeBase::HandleStartingNewPlayer(APlayerController* NewPlayer)
+{
+	const FString& StartPointName = UKismetStringLibrary::GetSubstring(OptionsString, 1,(OptionsString.Len() - 1));
+	UE_LOG(LogTemp, Warning, TEXT("OptionsString: %s, PlayerStartPoint: %s"), *OptionsString, *StartPointName);
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			15.f,
+			FColor::Blue,
+			FString::Printf(TEXT("OptionsString: %s, PlayerStartPoint: %s"), *OptionsString, *StartPointName)
+		);
+	}
+	
+	AActor* PlayerStartPoint = FindPlayerStart(NewPlayer, StartPointName);
+	
+	RestartPlayerAtPlayerStart(NewPlayer, PlayerStartPoint);
+}
+*/
 
 UGameUserSettings* ADayOneGameModeBase::GetGameUserSettings()
 {

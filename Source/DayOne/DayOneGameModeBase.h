@@ -19,8 +19,10 @@ public:
 
 	virtual void InitGameState() override;
 
+	//void HandleStartingNewPlayer(class APlayerController* NewPlayer);
+
 private:
-	void InitGameLift();
+	void InitGameLift() const;
 
 	class UGameUserSettings* GetGameUserSettings();
 };

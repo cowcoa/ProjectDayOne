@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{7F8123D9-47E0-63C9-C87F-A19081D26B41}",
+	"EngineAssociation": "{249B8EB8-4663-A656-8D32-7C989939F701}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -34,6 +34,10 @@
 		{
 			"Name": "GameLiftServerSDK",
 			"Enabled": true
+		},
+		{
+			"Name": "RiderLink",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
