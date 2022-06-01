@@ -23,6 +23,8 @@ class DAYONE_API AGun : public AActor
 public:	
 	AGun();
 
+	void ShowHeadDisplay(bool bShowHUD);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -32,9 +34,28 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Gun")
 	class USphereComponent* CollisionSphere;
 
+	UPROPERTY(VisibleAnywhere, Category="Display")
+	class UWidgetComponent* HeadDisplay;
+
+	
+	UFUNCTION()
+	virtual void OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		int32 bOtherBodyIndex);
+
 public:	
 	virtual void Tick(float DeltaTime) override;
 private:
 	UPROPERTY(VisibleAnywhere)
 	EGunState GunState;
+
 };

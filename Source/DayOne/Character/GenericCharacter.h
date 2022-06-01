@@ -14,6 +14,10 @@ class DAYONE_API AGenericCharacter : public ACharacter
 public:
 	AGenericCharacter();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	FORCEINLINE void PickupTheGun(class AGun* Gun){ MyGun = Gun; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -29,8 +33,14 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class UCameraComponent* Camera;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverheadWidget;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MyGun)
+	class AGun* MyGun;
+
+	UFUNCTION()
+	void OnRep_MyGun(AGun* MyLastGun);
 
 public:
 	virtual void Tick(float DeltaTime) override;

@@ -4,6 +4,8 @@
 #include "Gun.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
+#include "DayOne/Character/GenericCharacter.h"
 
 // Sets default values
 AGun::AGun()
@@ -27,7 +29,19 @@ AGun::AGun()
 	// But should let the player passthrough.
 	GunMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GunMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GunMesh->SetupAttachment(CollisionSphere);
+	GunMesh->SetupAttachment(RootComponent);
+
+	HeadDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadDisplay"));
+	HeadDisplay->SetupAttachment(RootComponent);
+}
+
+void AGun::ShowHeadDisplay(bool bShowHUD)
+{
+	if (HeadDisplay)
+	{
+		HeadDisplay->SetVisibility(bShowHUD);
+		UE_LOG(LogTemp, Warning, TEXT("=== ShowHeadDisplay: %s ==="), bShowHUD ? TEXT("true") : TEXT("false"));
+	}
 }
 
 // Called when the game starts or when spawned
@@ -37,9 +51,20 @@ void AGun::BeginPlay()
 
 	if (HasAuthority())
 	{
-		 CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		// Player can overlap with this collision to trigger some events.
 		CollisionSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+		CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnCollisionBeginOverlap);
+		CollisionSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnCollisionEndOverlap);
+
+		UE_LOG(LogTemp, Warning, TEXT("=== OnCollisionBeginOverlap registered! ==="));
+
+	}
+
+			
+	if (HeadDisplay)
+	{
+		HeadDisplay->SetVisibility(false);
 	}
 }
 
@@ -48,5 +73,29 @@ void AGun::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AGun::OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UE_LOG(LogTemp, Warning, TEXT("=== OnCollisionBeginOverlap called! ==="));
+	
+	AGenericCharacter* Character = Cast<AGenericCharacter>(OtherActor);
+	if (Character)
+	{
+		Character->PickupTheGun(this);
+	}
+}
+
+void AGun::OnCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent, int32 bOtherBodyIndex)
+{
+	UE_LOG(LogTemp, Warning, TEXT("=== OnCollisionEndOverlap called! ==="));
+	
+	AGenericCharacter* Character = Cast<AGenericCharacter>(OtherActor);
+	if (Character)
+	{
+		Character->PickupTheGun(nullptr);
+	}
 }
 

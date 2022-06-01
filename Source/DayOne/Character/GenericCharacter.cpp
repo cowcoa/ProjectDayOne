@@ -6,6 +6,8 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
+#include "DayOne/Gun/Gun.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AGenericCharacter::AGenericCharacter()
@@ -33,10 +35,28 @@ AGenericCharacter::AGenericCharacter()
 	OverheadWidget->SetupAttachment(RootComponent);
 }
 
+void AGenericCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AGenericCharacter, MyGun, COND_OwnerOnly);
+}
+
 // Called when the game starts or when spawned
 void AGenericCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AGenericCharacter::OnRep_MyGun(AGun* MyLastGun)
+{
+	if (MyGun == nullptr)
+	{
+		MyLastGun->ShowHeadDisplay(false);
+	} else
+	{
+		MyGun->ShowHeadDisplay(true);
+	}
 }
 
 // Called every frame
