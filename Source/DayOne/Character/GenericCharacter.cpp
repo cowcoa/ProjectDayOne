@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
+#include "DayOne/Components/CombatComponent.h"
 #include "DayOne/Gun/Gun.h"
 #include "Net/UnrealNetwork.h"
 
@@ -33,6 +34,9 @@ AGenericCharacter::AGenericCharacter()
 
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(RootComponent);
+
+	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
+	Combat->SetIsReplicated(true);
 }
 
 void AGenericCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -50,12 +54,23 @@ void AGenericCharacter::BeginPlay()
 
 void AGenericCharacter::OnRep_MyGun(AGun* MyLastGun)
 {
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_MyGun on client"));
 	if (MyGun == nullptr)
 	{
 		MyLastGun->ShowHeadDisplay(false);
 	} else
 	{
 		MyGun->ShowHeadDisplay(true);
+	}
+}
+
+void AGenericCharacter::ServerEquipGun_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("----- ServerEquipGun_Implementation called -----"));
+
+	if (MyGun && Combat)
+	{
+		Combat->EquipGun(MyGun);
 	}
 }
 
@@ -78,6 +93,8 @@ void AGenericCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::OnMoveRight);
 		PlayerInputComponent->BindAxis("Turn", this, &ThisClass::OnTurn);
 		PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::OnLookUp);
+
+		PlayerInputComponent->BindAction("Equip", EInputEvent::IE_Pressed, this, &ThisClass::OnEquipGun);
 	}
 }
 
@@ -110,4 +127,11 @@ void AGenericCharacter::OnTurn(float Value)
 void AGenericCharacter::OnLookUp(float Value)
 {
 	AddControllerPitchInput(Value);
+}
+
+void AGenericCharacter::OnEquipGun()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("OnEquipGun pressed!"));
+	// Execute equip weapon on server.
+	ServerEquipGun();
 }

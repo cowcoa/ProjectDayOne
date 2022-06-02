@@ -25,6 +25,8 @@ public:
 
 	void ShowHeadDisplay(bool bShowHUD);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -54,8 +56,12 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
+
+	void SetGunState(EGunState State);
 private:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(ReplicatedUsing=OnRep_GunState,VisibleInstanceOnly)
 	EGunState GunState;
 
+	UFUNCTION()
+	void OnRep_GunState(EGunState LastGunState);
 };

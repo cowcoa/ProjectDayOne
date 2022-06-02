@@ -6,6 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "DayOne/Character/GenericCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AGun::AGun()
@@ -44,6 +45,13 @@ void AGun::ShowHeadDisplay(bool bShowHUD)
 	}
 }
 
+void AGun::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ThisClass, GunState, COND_OwnerOnly);
+}
+
 // Called when the game starts or when spawned
 void AGun::BeginPlay()
 {
@@ -56,6 +64,8 @@ void AGun::BeginPlay()
 		CollisionSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnCollisionBeginOverlap);
 		CollisionSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnCollisionEndOverlap);
+
+		GunState = EGunState::EGS_Init;
 
 		UE_LOG(LogTemp, Warning, TEXT("=== OnCollisionBeginOverlap registered! ==="));
 
@@ -75,8 +85,27 @@ void AGun::Tick(float DeltaTime)
 
 }
 
+void AGun::SetGunState(EGunState State)
+{
+	GunState = State;
+	switch (GunState)
+	{
+	case EGunState::EGS_Equipped:
+		CollisionSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("=== GunState is in unknown state ==="));
+	}
+}
+
+void AGun::OnRep_GunState(EGunState LastGunState)
+{
+	ShowHeadDisplay(false);
+}
+
 void AGun::OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                   UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	UE_LOG(LogTemp, Warning, TEXT("=== OnCollisionBeginOverlap called! ==="));
 	

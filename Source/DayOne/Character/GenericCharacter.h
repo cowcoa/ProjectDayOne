@@ -27,6 +27,8 @@ protected:
 	void OnTurn(float Value);
 	void OnLookUp(float Value);
 
+	void OnEquipGun();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* CameraArm;
@@ -39,8 +41,14 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_MyGun)
 	class AGun* MyGun;
 
+	UPROPERTY(VisibleAnywhere)
+	class UCombatComponent* Combat;
+
 	UFUNCTION()
 	void OnRep_MyGun(AGun* MyLastGun);
+
+	UFUNCTION(Server, Reliable)
+	void ServerEquipGun();
 
 public:
 	virtual void Tick(float DeltaTime) override;
