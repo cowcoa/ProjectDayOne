@@ -3,6 +3,7 @@
 
 #include "GenericAnimInstance.h"
 #include "GenericCharacter.h"
+#include "DayOne/Components/CombatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 void UGenericAnimInstance::NativeInitializeAnimation()
@@ -29,6 +30,8 @@ void UGenericAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInAir = Character->GetCharacterMovement()->IsFalling();
 	bIsAccelerating = Character->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 
+	bIsGunEquipped = Character->GetCombatComponent()->GetGun() != nullptr;
+	
 	/*
 	if (GEngine)
 	{

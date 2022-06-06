@@ -6,6 +6,7 @@
 #include "DayOne/Character/GenericCharacter.h"
 #include "DayOne/Gun/Gun.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -15,6 +16,13 @@ UCombatComponent::UCombatComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
+}
+
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, MyGun);
 }
 
 void UCombatComponent::EquipGun(AGun* Gun)
@@ -28,6 +36,7 @@ void UCombatComponent::EquipGun(AGun* Gun)
 		GunSocket->AttachActor(Gun, Character->GetMesh());
 		Gun->SetOwner(Character);
 		Gun->SetGunState(EGunState::EGS_Equipped);
+		MyGun = Gun;
 	}
 }
 

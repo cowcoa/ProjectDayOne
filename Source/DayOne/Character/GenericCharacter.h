@@ -55,4 +55,6 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return Combat; }
+
 };

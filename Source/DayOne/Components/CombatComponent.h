@@ -16,13 +16,17 @@ public:
 	// Sets default values for this component's properties
 	UCombatComponent();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	void EquipGun(class AGun* Gun);
+	FORCEINLINE AGun* GetGun() const { return MyGun; }
 
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY(Replicated)
 	class AGun* MyGun;
 
 public:	
