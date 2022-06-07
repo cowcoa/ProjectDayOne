@@ -31,6 +31,8 @@ void UGenericAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsAccelerating = Character->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 
 	bIsGunEquipped = Character->GetCombatComponent()->GetGun() != nullptr;
+
+	bIsCrouched = Character->GetMovementComponent()->IsCrouching();
 	
 	/*
 	if (GEngine)

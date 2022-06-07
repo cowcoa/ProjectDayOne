@@ -37,6 +37,9 @@ AGenericCharacter::AGenericCharacter()
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
 	Combat->SetIsReplicated(true);
+
+	// Init crouch movement.
+    ACharacter::GetMovementComponent()->NavAgentProps.bCanCrouch = true;
 }
 
 void AGenericCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -95,6 +98,7 @@ void AGenericCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::OnLookUp);
 
 		PlayerInputComponent->BindAction("Equip", EInputEvent::IE_Pressed, this, &ThisClass::OnEquipGun);
+		PlayerInputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &ThisClass::OnCrouchPressed);
 	}
 }
 
@@ -134,4 +138,16 @@ void AGenericCharacter::OnEquipGun()
 	//UE_LOG(LogTemp, Warning, TEXT("OnEquipGun pressed!"));
 	// Execute equip weapon on server.
 	ServerEquipGun();
+}
+
+void AGenericCharacter::OnCrouchPressed()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
 }

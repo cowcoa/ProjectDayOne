@@ -26,8 +26,8 @@ protected:
 	void OnMoveRight(float Value);
 	void OnTurn(float Value);
 	void OnLookUp(float Value);
-
 	void OnEquipGun();
+	void OnCrouchPressed();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
