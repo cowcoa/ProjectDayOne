@@ -23,6 +23,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, MyGun);
+	DOREPLIFETIME(ThisClass, bAiming);
 }
 
 void UCombatComponent::EquipGun(AGun* Gun)
@@ -50,6 +51,16 @@ void UCombatComponent::BeginPlay()
 	
 }
 
+void UCombatComponent::AimTarget(bool bIsAiming)
+{
+	bAiming = bIsAiming;
+	ServerAimTarget(bIsAiming);
+}
+
+void UCombatComponent::ServerAimTarget_Implementation(bool bIsAiming)
+{
+	bAiming = bIsAiming;
+}
 
 // Called every frame
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

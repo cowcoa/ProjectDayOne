@@ -11,7 +11,8 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class DAYONE_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
+	friend class AGenericCharacter;
+	
 public:	
 	// Sets default values for this component's properties
 	UCombatComponent();
@@ -25,9 +26,17 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	void AimTarget(bool bIsAiming);
+
+	UFUNCTION(Server, Reliable)
+	void ServerAimTarget(bool bIsAiming);
+
 private:
 	UPROPERTY(Replicated)
 	class AGun* MyGun;
+
+	UPROPERTY(Replicated)
+	bool bAiming = false;
 
 public:	
 	// Called every frame

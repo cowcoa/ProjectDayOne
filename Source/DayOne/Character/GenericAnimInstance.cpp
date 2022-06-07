@@ -33,6 +33,8 @@ void UGenericAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsGunEquipped = Character->GetCombatComponent()->GetGun() != nullptr;
 
 	bIsCrouched = Character->GetMovementComponent()->IsCrouching();
+
+	bIsAiming = Character->IsAiming();
 	
 	/*
 	if (GEngine)

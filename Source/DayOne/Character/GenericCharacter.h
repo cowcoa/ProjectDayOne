@@ -29,6 +29,9 @@ protected:
 	void OnEquipGun();
 	void OnCrouchPressed();
 
+	void OnAimPressed();
+	void OnAimReleased();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* CameraArm;
@@ -57,4 +60,5 @@ public:
 
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return Combat; }
 
+	bool IsAiming() const;
 };

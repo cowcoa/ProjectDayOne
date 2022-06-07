@@ -4,6 +4,7 @@
 #include "GenericCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/ArrowComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
 #include "DayOne/Components/CombatComponent.h"
@@ -40,6 +41,8 @@ AGenericCharacter::AGenericCharacter()
 
 	// Init crouch movement.
     ACharacter::GetMovementComponent()->NavAgentProps.bCanCrouch = true;
+
+	GetArrowComponent()->SetHiddenInGame(false);
 }
 
 void AGenericCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -99,7 +102,19 @@ void AGenericCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		PlayerInputComponent->BindAction("Equip", EInputEvent::IE_Pressed, this, &ThisClass::OnEquipGun);
 		PlayerInputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &ThisClass::OnCrouchPressed);
+
+		PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &ThisClass::OnAimPressed);
+		PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &ThisClass::OnAimReleased);
 	}
+}
+
+bool AGenericCharacter::IsAiming() const
+{
+	if (Combat && Combat->bAiming)
+	{
+		return true;
+	}
+	return false;
 }
 
 // Process player input.
@@ -149,5 +164,21 @@ void AGenericCharacter::OnCrouchPressed()
 	else
 	{
 		Crouch();
+	}
+}
+
+void AGenericCharacter::OnAimPressed()
+{
+	if (Combat)
+	{
+		Combat->AimTarget(true);
+	}
+}
+
+void AGenericCharacter::OnAimReleased()
+{
+	if (Combat)
+	{
+		Combat->AimTarget(false);
 	}
 }
