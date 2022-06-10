@@ -32,8 +32,11 @@ protected:
 	void ServerAimTarget(bool bIsAiming);
 
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_MyGun)
 	class AGun* MyGun;
+
+	UFUNCTION()
+	void OnRep_MyGun(AGun* MyLastGun);
 
 	UPROPERTY(Replicated)
 	bool bAiming = false;

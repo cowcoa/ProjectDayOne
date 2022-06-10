@@ -42,7 +42,9 @@ AGenericCharacter::AGenericCharacter()
 	// Init crouch movement.
     ACharacter::GetMovementComponent()->NavAgentProps.bCanCrouch = true;
 
+#if UE_EDITOR
 	GetArrowComponent()->SetHiddenInGame(false);
+#endif 
 }
 
 void AGenericCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

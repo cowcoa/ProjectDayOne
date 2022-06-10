@@ -5,6 +5,7 @@
 #include "GenericCharacter.h"
 #include "DayOne/Components/CombatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UGenericAnimInstance::NativeInitializeAnimation()
 {
@@ -48,4 +49,12 @@ void UGenericAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Character speed: %f, falling: %s, accelerating: %s"), Speed, (bIsInAir ? TEXT("true") : TEXT("false")), (bIsAccelerating ? TEXT("true") : TEXT("false")));
 	*/
+
+	FRotator AimRtt =  Character->GetBaseAimRotation();
+	FRotator MoveRtt =  UKismetMathLibrary::MakeRotFromX(Character->GetVelocity());
+	FRotator DeltaRtt = UKismetMathLibrary::NormalizedDeltaRotator(MoveRtt,AimRtt);
+	//UE_LOG(LogTemp, Warning, TEXT("GetBaseAimRotation yaw: %f, GetVelocity yaw: %f, Delta yaw: %f"), AimRtt.Yaw, MoveRtt.Yaw, DeltaRtt.Yaw);
+
+	YawOffset = DeltaRtt.Yaw;
+	//Character->SetActorRotation(AimRtt);
 }

@@ -6,6 +6,7 @@
 #include "DayOne/Character/GenericCharacter.h"
 #include "DayOne/Gun/Gun.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -38,6 +39,8 @@ void UCombatComponent::EquipGun(AGun* Gun)
 		Gun->SetOwner(Character);
 		Gun->SetGunState(EGunState::EGS_Equipped);
 		MyGun = Gun;
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
 	}
 }
 
@@ -60,6 +63,17 @@ void UCombatComponent::AimTarget(bool bIsAiming)
 void UCombatComponent::ServerAimTarget_Implementation(bool bIsAiming)
 {
 	bAiming = bIsAiming;
+}
+
+void UCombatComponent::OnRep_MyGun(AGun* MyLastGun)
+{
+	AGenericCharacter* Character = Cast<AGenericCharacter>(GetOwner());
+	if (Character)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UCombatComponent::OnRep_MyGun"));
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
 }
 
 // Called every frame
