@@ -53,8 +53,17 @@ void UGenericAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	FRotator AimRtt =  Character->GetBaseAimRotation();
 	FRotator MoveRtt =  UKismetMathLibrary::MakeRotFromX(Character->GetVelocity());
 	FRotator DeltaRtt = UKismetMathLibrary::NormalizedDeltaRotator(MoveRtt,AimRtt);
+	MoveOffsetRotation = FMath::RInterpTo(MoveOffsetRotation, DeltaRtt, DeltaSeconds, 5);
+	YawOffset = MoveOffsetRotation.Yaw;
 	//UE_LOG(LogTemp, Warning, TEXT("GetBaseAimRotation yaw: %f, GetVelocity yaw: %f, Delta yaw: %f"), AimRtt.Yaw, MoveRtt.Yaw, DeltaRtt.Yaw);
+	 
+	LastRotation = CurrentRotation;
+	CurrentRotation = Character->GetActorRotation();
+	FRotator CharDeltaRtt = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, LastRotation);
+	//UE_LOG(LogTemp, Warning, TEXT("LastActorRotation yaw: %f, CurrentActorRotation yaw: %f, DeltaActorRotation yaw: %f"), LastRotation.Yaw, CurrentRotation.Yaw, CharDeltaRtt.Yaw);
 
-	YawOffset = DeltaRtt.Yaw;
-	//Character->SetActorRotation(AimRtt);
+	float Target = CharDeltaRtt.Yaw / DeltaSeconds;
+	float Interp = UKismetMathLibrary::FInterpTo(Lean, Target, DeltaSeconds, 6);
+	Lean = UKismetMathLibrary::Clamp(Interp, -90, 90);
+	UE_LOG(LogTemp, Warning, TEXT("Target: %f, Interp: %f, Lean: %f"), Target, Interp, Lean);
 }
