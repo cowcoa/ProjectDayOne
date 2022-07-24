@@ -4,6 +4,7 @@
 #include "SwatCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -32,6 +33,9 @@ ASwatCharacter::ASwatCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
+
+	CharacterName = CreateDefaultSubobject<UWidgetComponent>(TEXT("CharacterName"));
+	CharacterName->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned

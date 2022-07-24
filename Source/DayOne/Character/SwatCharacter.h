@@ -21,6 +21,8 @@ class DAYONE_API ASwatCharacter : public ACharacter
 	class USpringArmComponent* CameraArm;
 	UPROPERTY(EditDefaultsOnly, Category=Camera)
 	class UCameraComponent* Camera;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* CharacterName;
 	
 public:
 	// Sets default values for this character's properties
