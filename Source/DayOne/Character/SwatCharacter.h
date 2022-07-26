@@ -27,10 +27,13 @@ class DAYONE_API ASwatCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ASwatCharacter();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	
 
 public:	
 	// Called every frame
@@ -38,4 +41,17 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	FORCEINLINE void EquipWeapon(class AWeapon* Weapon)
+	{
+		EquippedWeapon = Weapon;
+	}
+	FORCEINLINE void DropWeapon(){}
+
+private:
+	UFUNCTION()
+	void OnRep_EquippedWeapon(class AWeapon* LastWeapon);
+	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
+	class AWeapon* EquippedWeapon;
+	
 };

@@ -5,14 +5,18 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/WidgetComponent.h"
+#include "DayOne/Weapon/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ASwatCharacter::ASwatCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	// Enable replicate
+	bReplicates = true;
 
 	// By default character never rotate itself with controller.
 	bUseControllerRotationPitch = false;
@@ -45,6 +49,13 @@ void ASwatCharacter::BeginPlay()
 	
 }
 
+void ASwatCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ThisClass, EquippedWeapon, COND_OwnerOnly);
+}
+
 // Called every frame
 void ASwatCharacter::Tick(float DeltaTime)
 {
@@ -65,6 +76,20 @@ void ASwatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::OnMoveRight);
 		PlayerInputComponent->BindAxis("Turn", this, &ThisClass::OnTurn);
 		PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::OnLookUp);
+	}
+}
+
+void ASwatCharacter::OnRep_EquippedWeapon(AWeapon* LastWeapon)
+{
+	if (EquippedWeapon)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnRep_EquippedWeapon EquippedWeapon"))
+		EquippedWeapon->ShowHud(true);
+	}
+	else if (LastWeapon)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnRep_EquippedWeapon LastWeapon"))
+		LastWeapon->ShowHud(false);
 	}
 }
 
