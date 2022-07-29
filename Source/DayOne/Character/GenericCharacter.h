@@ -45,7 +45,7 @@ private:
 	class AGun* MyGun;
 
 	UPROPERTY(VisibleAnywhere)
-	class UCombatComponent* Combat;
+	class UOldCombatComponent* Combat;
 
 	UFUNCTION()
 	void OnRep_MyGun(AGun* MyLastGun);
@@ -58,7 +58,7 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	FORCEINLINE UCombatComponent* GetCombatComponent() const { return Combat; }
+	FORCEINLINE UOldCombatComponent* GetCombatComponent() const { return Combat; }
 
 	bool IsAiming() const;
 };

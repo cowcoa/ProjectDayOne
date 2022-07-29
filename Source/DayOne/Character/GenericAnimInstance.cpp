@@ -3,7 +3,7 @@
 
 #include "GenericAnimInstance.h"
 #include "GenericCharacter.h"
-#include "DayOne/Components/CombatComponent.h"
+#include "DayOne/Components/OldCombatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 

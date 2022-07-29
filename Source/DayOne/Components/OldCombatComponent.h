@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "CombatComponent.generated.h"
+#include "OldCombatComponent.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class DAYONE_API UCombatComponent : public UActorComponent
+class DAYONE_API UOldCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 	friend class AGenericCharacter;
 	
 public:	
 	// Sets default values for this component's properties
-	UCombatComponent();
+	UOldCombatComponent();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

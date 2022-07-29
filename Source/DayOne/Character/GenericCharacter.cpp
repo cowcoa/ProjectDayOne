@@ -7,7 +7,7 @@
 #include "Components/ArrowComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
-#include "DayOne/Components/CombatComponent.h"
+#include "DayOne/Components/OldCombatComponent.h"
 #include "DayOne/Gun/Gun.h"
 #include "Net/UnrealNetwork.h"
 
@@ -36,7 +36,7 @@ AGenericCharacter::AGenericCharacter()
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(RootComponent);
 
-	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
+	Combat = CreateDefaultSubobject<UOldCombatComponent>(TEXT("Combat"));
 	Combat->SetIsReplicated(true);
 
 	// Init crouch movement.
