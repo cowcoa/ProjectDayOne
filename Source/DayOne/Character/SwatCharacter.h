@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DayOne/Component/CombatComponent.h"
 #include "GameFramework/Character.h"
 #include "SwatCharacter.generated.h"
 
@@ -51,6 +52,8 @@ public:
 	{
 		AvailableWeapon = Weapon;
 	}
+
+	FORCEINLINE bool WeaponEquipped() { return CombatComponent && CombatComponent->GetWeapon() != nullptr; }
 
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_AvailableWeapon)

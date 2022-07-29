@@ -33,4 +33,6 @@ void USwatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInAir = Character->GetCharacterMovement()->IsFalling();
 	// Accelerating indicates whether the player is still input 
 	bIsAccelerating = Character->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
+	// Get character weapon state
+	bIsWeaponEquipped = Character->WeaponEquipped();
 }

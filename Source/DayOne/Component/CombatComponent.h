@@ -18,11 +18,16 @@ public:
 	UCombatComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION(BlueprintCallable)
 	void EquipWeapon(ASwatCharacter* Character, AWeapon* Weapon);
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE AWeapon* GetWeapon() { return CurrentWeapon; }
+
 private:
-	AWeapon* CurrentWeapon;
+	UPROPERTY(Replicated)
+	AWeapon* CurrentWeapon = nullptr;
 	ASwatCharacter* AttachedCharacter;
 };
