@@ -20,7 +20,7 @@ void UCombatComponent::EquipWeapon(ASwatCharacter* Character, AWeapon* Weapon)
 	Weapon->SetOwner(Character);
 
 	CurrentWeapon = Weapon;
-	CurrentWeapon->SetStatus(EWeaponState::EWS_Equipped);
+	CurrentWeapon->SetState(EWeaponState::EWS_Equipped);
 }
 
 void UCombatComponent::BeginPlay()

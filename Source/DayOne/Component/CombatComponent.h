@@ -16,16 +16,11 @@ class DAYONE_API UCombatComponent : public UActorComponent
 
 public:	
 	UCombatComponent();
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	
 	UFUNCTION(BlueprintCallable)
 	void EquipWeapon(ASwatCharacter* Character, AWeapon* Weapon);
-
-protected:
-	virtual void BeginPlay() override;
-
-public:	
-	
 
 private:
 	AWeapon* CurrentWeapon;

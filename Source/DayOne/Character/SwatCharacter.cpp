@@ -95,16 +95,16 @@ void ASwatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	}
 }
 
-void ASwatCharacter::OnRep_EquippedWeapon(AWeapon* LastWeapon)
+void ASwatCharacter::OnRep_AvailableWeapon(AWeapon* LastWeapon)
 {
 	if (AvailableWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnRep_EquippedWeapon AvailableWeapon"))
+		UE_LOG(LogTemp, Warning, TEXT("OnRep_AvailableWeapon AvailableWeapon"))
 		AvailableWeapon->SetHudVisibility(true);
 	}
 	else if (LastWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnRep_EquippedWeapon LastWeapon"))
+		UE_LOG(LogTemp, Warning, TEXT("OnRep_AvailableWeapon LastWeapon"))
 		LastWeapon->SetHudVisibility(false);
 	}
 }

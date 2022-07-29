@@ -10,7 +10,7 @@
 
 AWeapon::AWeapon()
 {
-	// We don't need this actor to tick every frame right now
+	// Disable actor tick
 	PrimaryActorTick.bCanEverTick = false;
 	// Enable network replication
 	bReplicates = true;
@@ -22,12 +22,14 @@ AWeapon::AWeapon()
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetRootComponent(Mesh);
 
+	// Setup collider and disable ti by default
 	Collider = CreateDefaultSubobject<USphereComponent>(TEXT("Collider"));
 	Collider->SetSphereRadius(50);
 	Collider->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Collider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Collider->SetupAttachment(RootComponent);
 
+	// Setup HUD text component
 	Hud = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadUpDisplay"));
 	Hud->SetupAttachment(RootComponent);
 	SetHudVisibility(false);
@@ -69,7 +71,7 @@ void AWeapon::OnColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	ASwatCharacter* SwatCharacter = Cast<ASwatCharacter>(OtherActor);
 	if (SwatCharacter)
 	{
-		SwatCharacter->EquipWeapon(this);
+		SwatCharacter->SetAvailableWeapon(this);
 	}
 }
 
@@ -81,24 +83,7 @@ void AWeapon::OnColliderEndOverlap(UPrimitiveComponent* OverlappedComponent,
 	ASwatCharacter* SwatCharacter = Cast<ASwatCharacter>(OtherActor);
 	if (SwatCharacter)
 	{
-		SwatCharacter->EquipWeapon(nullptr);
-	}
-}
-
-void AWeapon::OnRep_CurrentState()
-{
-	switch (CurrentState)
-	{
-	case EWeaponState::EWS_Init:
-		break;
-	case EWeaponState::EWS_Equipped:
-		UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentState"))
-		SetHudVisibility(false);
-		break;
-	case EWeaponState::EWS_Dropped:
-		break;
-	default:
-		break;
+		SwatCharacter->SetAvailableWeapon(nullptr);
 	}
 }
 
@@ -110,7 +95,7 @@ void AWeapon::SetHudVisibility(bool bNewVisibility)
 	}
 }
 
-void AWeapon::SetStatus(EWeaponState State)
+void AWeapon::SetState(EWeaponState State)
 {
 	CurrentState = State;
 	switch (CurrentState)
@@ -120,6 +105,22 @@ void AWeapon::SetStatus(EWeaponState State)
 	case EWeaponState::EWS_Equipped:
 		Collider->SetCollisionResponseToAllChannels(ECR_Ignore);
 		Collider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Dropped:
+		break;
+	default:
+		break;
+	}
+}
+
+void AWeapon::OnRep_CurrentState()
+{
+	switch (CurrentState)
+	{
+	case EWeaponState::EWS_Init:
+		break;
+	case EWeaponState::EWS_Equipped:
+		SetHudVisibility(false);
 		break;
 	case EWeaponState::EWS_Dropped:
 		break;

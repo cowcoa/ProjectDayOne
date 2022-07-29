@@ -47,15 +47,14 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	FORCEINLINE void EquipWeapon(class AWeapon* Weapon)
+	FORCEINLINE void SetAvailableWeapon(class AWeapon* Weapon)
 	{
 		AvailableWeapon = Weapon;
 	}
-	FORCEINLINE void DropWeapon(){}
 
 private:
-	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
+	UPROPERTY(ReplicatedUsing=OnRep_AvailableWeapon)
 	class AWeapon* AvailableWeapon = nullptr;
 	UFUNCTION()
-	void OnRep_EquippedWeapon(class AWeapon* LastWeapon);
+	void OnRep_AvailableWeapon(class AWeapon* LastWeapon);
 };

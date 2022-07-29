@@ -29,24 +29,27 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetHudVisibility(bool bNewVisibility);
 
-	void SetStatus(EWeaponState State);
+	// Change weapon state;
+	UFUNCTION(BlueprintCallable)
+	void SetState(EWeaponState State);
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-
+	
 	UFUNCTION()
-	void OnColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent,
+	virtual void OnColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 		                        AActor* OtherActor,
 		                        UPrimitiveComponent* OtherComp,
 		                        int32 OtherBodyIndex,
 		                        bool bFromSweep,
 		                        const FHitResult & SweepResult);
 	UFUNCTION()
-	void OnColliderEndOverlap(UPrimitiveComponent* OverlappedComponent,
+	virtual void OnColliderEndOverlap(UPrimitiveComponent* OverlappedComponent,
 		                      AActor* OtherActor,
 		                      UPrimitiveComponent* OtherComp,
 		                      int32 OtherBodyIndex);
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* Mesh;
@@ -54,7 +57,7 @@ private:
 	class UWidgetComponent* Hud;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* Collider;
-
+	
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentState)
 	EWeaponState CurrentState = EWeaponState::EWS_Init;
 	UFUNCTION()
