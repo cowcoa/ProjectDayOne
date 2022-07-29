@@ -6,6 +6,16 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+UENUM(BlueprintType)
+enum class EWeaponState : uint8
+{
+	EWS_Init UMETA(DisplayName = "Init State"),
+	EWS_Equipped UMETA(DisplayName = "Equipped State"),
+	EWS_Dropped UMETA(DisplayName = "Dropped State"),
+	
+	EWS_MAX
+};
+
 UCLASS()
 class DAYONE_API AWeapon : public AActor
 {
@@ -13,8 +23,10 @@ class DAYONE_API AWeapon : public AActor
 	
 public:	
 	AWeapon();
+
+	// Show or hide the weapon's HUD
 	UFUNCTION(BlueprintCallable)
-	void ShowHud(bool bNewVisibility);
+	void SetHudVisibility(bool bNewVisibility);
 
 protected:
 	virtual void BeginPlay() override;

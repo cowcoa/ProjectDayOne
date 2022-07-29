@@ -84,12 +84,12 @@ void ASwatCharacter::OnRep_EquippedWeapon(AWeapon* LastWeapon)
 	if (EquippedWeapon)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("OnRep_EquippedWeapon EquippedWeapon"))
-		EquippedWeapon->ShowHud(true);
+		EquippedWeapon->SetHudVisibility(true);
 	}
 	else if (LastWeapon)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("OnRep_EquippedWeapon LastWeapon"))
-		LastWeapon->ShowHud(false);
+		LastWeapon->SetHudVisibility(false);
 	}
 }
 

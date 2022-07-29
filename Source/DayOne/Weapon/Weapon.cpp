@@ -9,8 +9,9 @@
 
 AWeapon::AWeapon()
 {
+	// We don't need this actor to tick every frame right now
 	PrimaryActorTick.bCanEverTick = false;
-	// Enable replicate
+	// Enable network replication
 	bReplicates = true;
 
 	// Setup weapon mesh and it's corresponding collision
@@ -28,27 +29,16 @@ AWeapon::AWeapon()
 
 	Hud = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadUpDisplay"));
 	Hud->SetupAttachment(RootComponent);
-
-	UE_LOG(LogTemp, Warning, TEXT("Weapon Constructor"))
-	ShowHud(false);
-}
-
-void AWeapon::ShowHud(bool bNewVisibility)
-{
-	if (Hud)
-	{
-		Hud->SetVisibility(bNewVisibility);
-		UE_LOG(LogTemp, Warning, TEXT("=== ShowHeadDisplay: %s ==="), bNewVisibility ? TEXT("true") : TEXT("false"));
-	}
+	SetHudVisibility(false);
 }
 
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Enable collider on server only
 	if (HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Weapon BeginPlay and Has Authority"));
 		Collider->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		Collider->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Collider->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnColliderBeginOverlap);
@@ -59,7 +49,6 @@ void AWeapon::BeginPlay()
 void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AWeapon::OnColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent,
@@ -69,8 +58,6 @@ void AWeapon::OnColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent,
                                      bool bFromSweep,
                                      const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("=== OnCollisionBeginOverlap called! ==="));
-	//UE_LOG(LogTemp, Warning, TEXT("OnColliderBeginOverlap with %s"), *(OtherActor->GetName()));
 	ASwatCharacter* SwatCharacter = Cast<ASwatCharacter>(OtherActor);
 	if (SwatCharacter)
 	{
@@ -83,10 +70,17 @@ void AWeapon::OnColliderEndOverlap(UPrimitiveComponent* OverlappedComponent,
 	                               UPrimitiveComponent* OtherComp,
 	                               int32 OtherBodyIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnColliderEndOverlap with %s"), *(OtherActor->GetName()));
 	ASwatCharacter* SwatCharacter = Cast<ASwatCharacter>(OtherActor);
 	if (SwatCharacter)
 	{
 		SwatCharacter->EquipWeapon(nullptr);
+	}
+}
+
+void AWeapon::SetHudVisibility(bool bNewVisibility)
+{
+	if (Hud)
+	{
+		Hud->SetVisibility(bNewVisibility);
 	}
 }
