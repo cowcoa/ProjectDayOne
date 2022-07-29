@@ -23,10 +23,13 @@ class DAYONE_API AWeapon : public AActor
 	
 public:	
 	AWeapon();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// Show or hide the weapon's HUD
 	UFUNCTION(BlueprintCallable)
 	void SetHudVisibility(bool bNewVisibility);
+
+	void SetStatus(EWeaponState State);
 
 protected:
 	virtual void BeginPlay() override;
@@ -51,4 +54,9 @@ private:
 	class UWidgetComponent* Hud;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* Collider;
+
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentState)
+	EWeaponState CurrentState = EWeaponState::EWS_Init;
+	UFUNCTION()
+	void OnRep_CurrentState();
 };

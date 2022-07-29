@@ -5,6 +5,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/WidgetComponent.h"
+#include "DayOne/Component/CombatComponent.h"
 #include "DayOne/Weapon/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -38,8 +39,13 @@ ASwatCharacter::ASwatCharacter()
 	Camera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
+	// Create HUD component
 	CharacterName = CreateDefaultSubobject<UWidgetComponent>(TEXT("CharacterName"));
 	CharacterName->SetupAttachment(RootComponent);
+
+	// Create custom combat component
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
+	CombatComponent->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
@@ -49,11 +55,19 @@ void ASwatCharacter::BeginPlay()
 	
 }
 
+void ASwatCharacter::ServerEquipWeapon_Implementation()
+{
+	if (AvailableWeapon)
+	{
+		CombatComponent->EquipWeapon(this, AvailableWeapon);
+	}
+}
+
 void ASwatCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(ThisClass, EquippedWeapon, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, AvailableWeapon, COND_OwnerOnly);
 }
 
 // Called every frame
@@ -72,6 +86,8 @@ void ASwatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	{
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ThisClass::Jump);
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ThisClass::StopJumping);
+		PlayerInputComponent->BindAction("Equip", EInputEvent::IE_Pressed, this, &ThisClass::OnEquip);
+		
 		PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::OnMoveForward);
 		PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::OnMoveRight);
 		PlayerInputComponent->BindAxis("Turn", this, &ThisClass::OnTurn);
@@ -81,10 +97,10 @@ void ASwatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ASwatCharacter::OnRep_EquippedWeapon(AWeapon* LastWeapon)
 {
-	if (EquippedWeapon)
+	if (AvailableWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnRep_EquippedWeapon EquippedWeapon"))
-		EquippedWeapon->SetHudVisibility(true);
+		UE_LOG(LogTemp, Warning, TEXT("OnRep_EquippedWeapon AvailableWeapon"))
+		AvailableWeapon->SetHudVisibility(true);
 	}
 	else if (LastWeapon)
 	{
@@ -126,4 +142,12 @@ void ASwatCharacter::OnLookUp(float Value)
 {
 	// Turn the controller's pitch rotation to make the character's camera look up and down.
 	AddControllerPitchInput(Value);
+}
+
+void ASwatCharacter::OnEquip()
+{
+	if (AvailableWeapon)
+	{
+		ServerEquipWeapon();
+	}
 }

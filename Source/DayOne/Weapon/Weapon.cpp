@@ -6,6 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "DayOne/Character/SwatCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 AWeapon::AWeapon()
 {
@@ -30,6 +31,13 @@ AWeapon::AWeapon()
 	Hud = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadUpDisplay"));
 	Hud->SetupAttachment(RootComponent);
 	SetHudVisibility(false);
+}
+
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ThisClass, CurrentState, COND_OwnerOnly);
 }
 
 void AWeapon::BeginPlay()
@@ -77,10 +85,45 @@ void AWeapon::OnColliderEndOverlap(UPrimitiveComponent* OverlappedComponent,
 	}
 }
 
+void AWeapon::OnRep_CurrentState()
+{
+	switch (CurrentState)
+	{
+	case EWeaponState::EWS_Init:
+		break;
+	case EWeaponState::EWS_Equipped:
+		UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentState"))
+		SetHudVisibility(false);
+		break;
+	case EWeaponState::EWS_Dropped:
+		break;
+	default:
+		break;
+	}
+}
+
 void AWeapon::SetHudVisibility(bool bNewVisibility)
 {
 	if (Hud)
 	{
 		Hud->SetVisibility(bNewVisibility);
+	}
+}
+
+void AWeapon::SetStatus(EWeaponState State)
+{
+	CurrentState = State;
+	switch (CurrentState)
+	{
+	case EWeaponState::EWS_Init:
+		break;
+	case EWeaponState::EWS_Equipped:
+		Collider->SetCollisionResponseToAllChannels(ECR_Ignore);
+		Collider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Dropped:
+		break;
+	default:
+		break;
 	}
 }

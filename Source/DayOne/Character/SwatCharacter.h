@@ -16,6 +16,7 @@ class DAYONE_API ASwatCharacter : public ACharacter
 	void OnMoveRight(float Value);
 	void OnTurn(float Value);
 	void OnLookUp(float Value);
+	void OnEquip();
 
 	UPROPERTY(EditDefaultsOnly, Category=Camera)
 	class USpringArmComponent* CameraArm;
@@ -23,6 +24,8 @@ class DAYONE_API ASwatCharacter : public ACharacter
 	class UCameraComponent* Camera;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* CharacterName;
+	UPROPERTY(VisibleAnywhere)
+	class UCombatComponent* CombatComponent;
 	
 public:
 	// Sets default values for this character's properties
@@ -33,6 +36,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Run-in-server RPC
+	UFUNCTION(Server, Reliable)
+	void ServerEquipWeapon();
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -42,13 +49,13 @@ public:
 
 	FORCEINLINE void EquipWeapon(class AWeapon* Weapon)
 	{
-		EquippedWeapon = Weapon;
+		AvailableWeapon = Weapon;
 	}
 	FORCEINLINE void DropWeapon(){}
 
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
-	class AWeapon* EquippedWeapon = nullptr;
+	class AWeapon* AvailableWeapon = nullptr;
 	UFUNCTION()
 	void OnRep_EquippedWeapon(class AWeapon* LastWeapon);
 };
