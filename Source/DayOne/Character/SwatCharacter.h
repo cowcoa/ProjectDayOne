@@ -18,6 +18,9 @@ class DAYONE_API ASwatCharacter : public ACharacter
 	void OnTurn(float Value);
 	void OnLookUp(float Value);
 	void OnEquip();
+	void OnCrouch();
+	void OnAimHold();
+	void OnAimRelease();
 
 	UPROPERTY(EditDefaultsOnly, Category=Camera)
 	class USpringArmComponent* CameraArm;
@@ -53,7 +56,9 @@ public:
 		AvailableWeapon = Weapon;
 	}
 
-	FORCEINLINE bool WeaponEquipped() { return CombatComponent && CombatComponent->GetWeapon() != nullptr; }
+	FORCEINLINE bool WeaponEquipped() const { return CombatComponent && CombatComponent->GetWeapon() != nullptr; }
+	FORCEINLINE bool Crouched() const { return bIsCrouched; }
+	FORCEINLINE bool IsAiming() const { return CombatComponent && CombatComponent->IsAiming(); }
 
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_AvailableWeapon)

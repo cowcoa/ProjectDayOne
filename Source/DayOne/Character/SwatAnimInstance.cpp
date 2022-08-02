@@ -35,4 +35,10 @@ void USwatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsAccelerating = Character->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 	// Get character weapon state
 	bIsWeaponEquipped = Character->WeaponEquipped();
+
+	// Get character crouch state
+	bIsCrouched = Character->Crouched();
+
+	// Get character aiming state
+	bIsAiming = Character->IsAiming();
 }

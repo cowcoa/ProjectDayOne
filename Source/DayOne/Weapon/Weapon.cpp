@@ -109,6 +109,7 @@ void AWeapon::SetState(EWeaponState State)
 	case EWeaponState::EWS_Dropped:
 		break;
 	default:
+		checkNoEntry();
 		break;
 	}
 }

@@ -24,10 +24,22 @@ public:
 	void EquipWeapon(ASwatCharacter* Character, AWeapon* Weapon);
 
 	UFUNCTION(BlueprintCallable)
+	void AimTarget(bool bAim);
+	UFUNCTION(Server, Reliable)
+	void ServerAimTarget(bool bAim);
+
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE AWeapon* GetWeapon() { return CurrentWeapon; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool IsAiming() const { return bIsAiming; }
 
 private:
 	UPROPERTY(Replicated)
 	AWeapon* CurrentWeapon = nullptr;
-	ASwatCharacter* AttachedCharacter;
+	
+	ASwatCharacter* AttachedCharacter = nullptr;
+
+	UPROPERTY(Replicated, Transient)
+	bool bIsAiming;
 };

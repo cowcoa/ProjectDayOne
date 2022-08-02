@@ -28,6 +28,11 @@ ASwatCharacter::ASwatCharacter()
 	// Make character automatically rotate itself to face the movement direction.
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+
+	// Enable crouch by default
+	// GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	// Create camera spring arm and attach camera
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
@@ -57,6 +62,7 @@ void ASwatCharacter::BeginPlay()
 
 void ASwatCharacter::ServerEquipWeapon_Implementation()
 {
+	check(AvailableWeapon);
 	if (AvailableWeapon)
 	{
 		CombatComponent->EquipWeapon(this, AvailableWeapon);
@@ -87,6 +93,9 @@ void ASwatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ThisClass::Jump);
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ThisClass::StopJumping);
 		PlayerInputComponent->BindAction("Equip", EInputEvent::IE_Pressed, this, &ThisClass::OnEquip);
+		PlayerInputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &ThisClass::OnCrouch);
+		PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &ThisClass::OnAimHold);
+		PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &ThisClass::OnAimRelease);
 		
 		PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::OnMoveForward);
 		PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::OnMoveRight);
@@ -150,4 +159,28 @@ void ASwatCharacter::OnEquip()
 	{
 		ServerEquipWeapon();
 	}
+}
+
+void ASwatCharacter::OnCrouch()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
+}
+
+void ASwatCharacter::OnAimHold()
+{
+	check(CombatComponent);
+	CombatComponent->AimTarget(true);
+}
+
+void ASwatCharacter::OnAimRelease()
+{
+	check(CombatComponent);
+	CombatComponent->AimTarget(false);
 }

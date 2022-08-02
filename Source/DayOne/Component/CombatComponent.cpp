@@ -24,6 +24,17 @@ void UCombatComponent::EquipWeapon(ASwatCharacter* Character, AWeapon* Weapon)
 	CurrentWeapon->SetState(EWeaponState::EWS_Equipped);
 }
 
+void UCombatComponent::AimTarget(bool bAim)
+{
+	bIsAiming = bAim;
+	ServerAimTarget(bAim);
+}
+
+void UCombatComponent::ServerAimTarget_Implementation(bool bAim)
+{
+	bIsAiming = bAim;
+}
+
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -39,5 +50,6 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, CurrentWeapon);
+	DOREPLIFETIME(ThisClass, bIsAiming);
 }
 
