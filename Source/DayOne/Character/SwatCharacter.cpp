@@ -62,9 +62,9 @@ void ASwatCharacter::BeginPlay()
 
 void ASwatCharacter::ServerEquipWeapon_Implementation()
 {
-	check(AvailableWeapon);
-	if (AvailableWeapon)
+	if (AvailableWeapon && CombatComponent)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("CombatComponent->EquipWeapon"));
 		CombatComponent->EquipWeapon(this, AvailableWeapon);
 	}
 }
@@ -157,6 +157,9 @@ void ASwatCharacter::OnEquip()
 {
 	if (AvailableWeapon)
 	{
+		// Change character moving state.
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		bUseControllerRotationYaw = true;
 		ServerEquipWeapon();
 	}
 }
@@ -175,12 +178,16 @@ void ASwatCharacter::OnCrouch()
 
 void ASwatCharacter::OnAimHold()
 {
-	check(CombatComponent);
-	CombatComponent->AimTarget(true);
+	if (WeaponEquipped())
+	{
+		CombatComponent->AimTarget(true);
+	}
 }
 
 void ASwatCharacter::OnAimRelease()
 {
-	check(CombatComponent);
-	CombatComponent->AimTarget(false);
+	if (WeaponEquipped())
+	{
+		CombatComponent->AimTarget(false);
+	}
 }

@@ -35,8 +35,10 @@ public:
 	FORCEINLINE bool IsAiming() const { return bIsAiming; }
 
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentWeapon)
 	AWeapon* CurrentWeapon = nullptr;
+	UFUNCTION()
+	void OnRep_CurrentWeapon();
 	
 	ASwatCharacter* AttachedCharacter = nullptr;
 

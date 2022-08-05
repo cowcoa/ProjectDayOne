@@ -5,6 +5,8 @@
 
 #include "SwatCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Navigation/PathFollowingComponent.h"
 
 void USwatAnimInstance::NativeInitializeAnimation()
 {
@@ -41,4 +43,23 @@ void USwatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	// Get character aiming state
 	bIsAiming = Character->IsAiming();
+
+	// Get jog and lean info
+	FRotator AimingDirRotation = Character->GetBaseAimRotation();
+	FRotator MovingDirRotation = UKismetMathLibrary::MakeRotFromX(Character->GetVelocity());
+	FRotator DeltaMovingRotation = UKismetMathLibrary::NormalizedDeltaRotator(MovingDirRotation, AimingDirRotation);
+	CurrentDeltaMovingRotation = UKismetMathLibrary::RInterpTo(CurrentDeltaMovingRotation, DeltaMovingRotation, DeltaSeconds, 5);
+	YawOffset = CurrentDeltaMovingRotation.Yaw;
+	//UE_LOG(LogTemp, Warning, TEXT("Facing Rot: %f, Moving Rot: %f, Delta Rot: %f, YawOffset: %f"), AimingDirRotation.Yaw, MovingDirRotation.Yaw, DeltaMovingRotation.Yaw, YawOffset);
+	
+	LastFrameCharacterRotation = CurrFrameCharacterRotation;
+	CurrFrameCharacterRotation = Character->GetActorRotation();
+	UE_LOG(LogTemp, Warning, TEXT("LastFrameCharacterRotation yaw: %f, CurrFrameCharacterRotation yaw: %f"), LastFrameCharacterRotation.Yaw, CurrFrameCharacterRotation.Yaw);
+	FRotator DeltaActorRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrFrameCharacterRotation, LastFrameCharacterRotation);
+	//UE_LOG(LogTemp, Warning, TEXT("LastFrameCharacterRotation yaw: %f, CurrentDeltaMovingRotation yaw: %f, DeltaActorRotation yaw: %f"), LastFrameCharacterRotation.Yaw, CurrentDeltaMovingRotation.Yaw, DeltaActorRotation.Yaw);
+	
+	float DeltaYaw = DeltaActorRotation.Yaw / DeltaSeconds;
+	float CurrentDeltaYaw = UKismetMathLibrary::FInterpTo(Lean, DeltaYaw, DeltaSeconds, 5);
+	Lean = UKismetMathLibrary::Clamp(CurrentDeltaYaw, -180, 180);
+	UE_LOG(LogTemp, Warning, TEXT("Lean: %f"), Lean);
 }
