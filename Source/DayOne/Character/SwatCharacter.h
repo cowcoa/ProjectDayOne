@@ -11,58 +11,55 @@ UCLASS()
 class DAYONE_API ASwatCharacter : public ACharacter
 {
 	GENERATED_BODY()
+	friend class AWeapon;
 
-	// Process player input.
-	void OnMoveForward(float Value);
-	void OnMoveRight(float Value);
-	void OnTurn(float Value);
-	void OnLookUp(float Value);
-	void OnEquip();
-	void OnCrouch();
-	void OnAimHold();
-	void OnAimRelease();
-
-	UPROPERTY(EditDefaultsOnly, Category=Camera)
-	class USpringArmComponent* CameraArm;
-	UPROPERTY(EditDefaultsOnly, Category=Camera)
-	class UCameraComponent* Camera;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* CharacterName;
-	UPROPERTY(VisibleAnywhere)
-	class UCombatComponent* CombatComponent;
-	
 public:
-	// Sets default values for this character's properties
 	ASwatCharacter();
+
+	virtual void PostInitializeComponents() override;
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	FORCEINLINE bool IsWeaponEquipped() const { return Combat && Combat->GetWeapon() != nullptr; }
+	FORCEINLINE bool IsCrouching() const { return bIsCrouched; }
+	FORCEINLINE bool IsAiming() const { return Combat && Combat->IsAiming(); }
 
-	// Run-in-server RPC
+protected:
+	// Player components
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	class USpringArmComponent* CameraBoom;
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	class UCameraComponent* FollowCamera;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "HUD")
+	class UWidgetComponent* Hud;
+	UPROPERTY(VisibleAnywhere, Category = "Combat")
+	class UCombatComponent* Combat;
+	
+private:
+	// Player input callback
+	// Press W/S to move forward or backward
+	void OnMoveForward(float Value);
+	// Press A/D to move left or right
+	void OnMoveRight(float Value);
+	// Move your MOUSE to look around
+	void OnTurn(float Value);
+	void OnLookUp(float Value);
+	// Press E to equip weapon
+	void OnEquip();
 	UFUNCTION(Server, Reliable)
 	void ServerEquipWeapon();
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	// Press LEFT SHIFT to crouch
+	void OnCrouch();
+	// Press/Release RIGHT MOUSE BUTTON to aim/un-aim
+	void OnAimHold();
+	void OnAimRelease();
 	
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	FORCEINLINE void SetAvailableWeapon(class AWeapon* Weapon)
-	{
-		AvailableWeapon = Weapon;
-	}
-
-	FORCEINLINE bool WeaponEquipped() const { return CombatComponent && CombatComponent->GetWeapon() != nullptr; }
-	FORCEINLINE bool Crouched() const { return bIsCrouched; }
-	FORCEINLINE bool IsAiming() const { return CombatComponent && CombatComponent->IsAiming(); }
-
-private:
+	// Weapon available near the character(can be picked up)
 	UPROPERTY(ReplicatedUsing=OnRep_AvailableWeapon)
 	class AWeapon* AvailableWeapon = nullptr;
+	// @param LastWeapon - last value of AvailableWeapon
 	UFUNCTION()
 	void OnRep_AvailableWeapon(class AWeapon* LastWeapon);
 };

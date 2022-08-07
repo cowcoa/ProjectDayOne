@@ -13,6 +13,7 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class DAYONE_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
+	friend class ASwatCharacter;
 
 public:	
 	UCombatComponent();

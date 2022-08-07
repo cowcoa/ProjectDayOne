@@ -71,7 +71,8 @@ void AWeapon::OnColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	ASwatCharacter* SwatCharacter = Cast<ASwatCharacter>(OtherActor);
 	if (SwatCharacter)
 	{
-		SwatCharacter->SetAvailableWeapon(this);
+		//SwatCharacter->SetAvailableWeapon(this);
+		SwatCharacter->AvailableWeapon = this;
 	}
 }
 
@@ -83,7 +84,8 @@ void AWeapon::OnColliderEndOverlap(UPrimitiveComponent* OverlappedComponent,
 	ASwatCharacter* SwatCharacter = Cast<ASwatCharacter>(OtherActor);
 	if (SwatCharacter)
 	{
-		SwatCharacter->SetAvailableWeapon(nullptr);
+		//SwatCharacter->SetAvailableWeapon(nullptr);
+		SwatCharacter->AvailableWeapon = nullptr;
 	}
 }
 

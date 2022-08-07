@@ -11,72 +11,56 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 
-// Sets default values
 ASwatCharacter::ASwatCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-	// Enable replicate
+	PrimaryActorTick.bCanEverTick = false;
+	// Enable replication
 	bReplicates = true;
 
-	// By default character never rotate itself with controller.
+	// By default character never rotate itself with controller
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
-	// In some situation we need our character always facing the controller's yaw direction, then setting this to true.
+	// When player strafing with gun, we need set this back to true
 	bUseControllerRotationYaw = false;
 
-	// Make character automatically rotate itself to face the movement direction.
+	// Create camera spring arm and attach camera
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->TargetArmLength = 800.f;
+	CameraBoom->bUsePawnControlRotation = true;
+
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	FollowCamera->bUsePawnControlRotation = false;
+
+	// Create HUD component
+	Hud = CreateDefaultSubobject<UWidgetComponent>(TEXT("Hud"));
+	Hud->SetupAttachment(RootComponent);
+
+	// Create custom combat component
+	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
+	Combat->SetIsReplicated(true);
+}
+
+void ASwatCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// Make character automatically rotate itself to face the movement direction
+	// When player strafing with gun, we need set this back to false 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->JumpZVelocity = 600.f;
-
 	// Enable crouch by default
-	// GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-
-	// Create camera spring arm and attach camera
-	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
-	CameraArm->SetupAttachment(RootComponent);
-	CameraArm->TargetArmLength = 800.f;
-	CameraArm->bUsePawnControlRotation = true;
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
-	Camera->bUsePawnControlRotation = false;
-
-	// Create HUD component
-	CharacterName = CreateDefaultSubobject<UWidgetComponent>(TEXT("CharacterName"));
-	CharacterName->SetupAttachment(RootComponent);
-
-	// Create custom combat component
-	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
-	CombatComponent->SetIsReplicated(true);
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 }
 
-// Called when the game starts or when spawned
 void ASwatCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void ASwatCharacter::ServerEquipWeapon_Implementation()
-{
-	if (AvailableWeapon && CombatComponent)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("CombatComponent->EquipWeapon"));
-		CombatComponent->EquipWeapon(this, AvailableWeapon);
-	}
-}
-
-void ASwatCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(ThisClass, AvailableWeapon, COND_OwnerOnly);
-}
-
-// Called every frame
 void ASwatCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -104,18 +88,11 @@ void ASwatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	}
 }
 
-void ASwatCharacter::OnRep_AvailableWeapon(AWeapon* LastWeapon)
+void ASwatCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	if (AvailableWeapon)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("OnRep_AvailableWeapon AvailableWeapon"))
-		AvailableWeapon->SetHudVisibility(true);
-	}
-	else if (LastWeapon)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("OnRep_AvailableWeapon LastWeapon"))
-		LastWeapon->SetHudVisibility(false);
-	}
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ThisClass, AvailableWeapon, COND_OwnerOnly);
 }
 
 // Implement player input callback
@@ -164,6 +141,15 @@ void ASwatCharacter::OnEquip()
 	}
 }
 
+void ASwatCharacter::ServerEquipWeapon_Implementation()
+{
+	if (AvailableWeapon && Combat)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Combat->EquipWeapon"));
+		Combat->EquipWeapon(this, AvailableWeapon);
+	}
+}
+
 void ASwatCharacter::OnCrouch()
 {
 	if (bIsCrouched)
@@ -178,16 +164,30 @@ void ASwatCharacter::OnCrouch()
 
 void ASwatCharacter::OnAimHold()
 {
-	if (WeaponEquipped())
+	if (IsWeaponEquipped())
 	{
-		CombatComponent->AimTarget(true);
+		Combat->AimTarget(true);
 	}
 }
 
 void ASwatCharacter::OnAimRelease()
 {
-	if (WeaponEquipped())
+	if (IsWeaponEquipped())
 	{
-		CombatComponent->AimTarget(false);
+		Combat->AimTarget(false);
+	}
+}
+
+void ASwatCharacter::OnRep_AvailableWeapon(AWeapon* LastWeapon)
+{
+	if (AvailableWeapon)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnRep_AvailableWeapon AvailableWeapon"))
+		AvailableWeapon->SetHudVisibility(true);
+	}
+	else if (LastWeapon)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnRep_AvailableWeapon LastWeapon"))
+		LastWeapon->SetHudVisibility(false);
 	}
 }

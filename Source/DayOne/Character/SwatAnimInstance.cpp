@@ -36,10 +36,10 @@ void USwatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// Accelerating indicates whether the player is still input 
 	bIsAccelerating = Character->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 	// Get character weapon state
-	bIsWeaponEquipped = Character->WeaponEquipped();
+	bIsWeaponEquipped = Character->IsWeaponEquipped();
 
 	// Get character crouch state
-	bIsCrouched = Character->Crouched();
+	bIsCrouched = Character->IsCrouching();
 
 	// Get character aiming state
 	bIsAiming = Character->IsAiming();
