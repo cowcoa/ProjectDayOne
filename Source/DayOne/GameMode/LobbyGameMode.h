@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "Interfaces/IHttpRequest.h"
 #include "LobbyGameMode.generated.h"
 
 /**
@@ -16,4 +17,9 @@ class DAYONE_API ALobbyGameMode : public AGameMode
 
 public:
 	virtual void OnPostLogin(AController* NewPlayer) override;
+
+	virtual void StartPlay() override;
+
+private:
+	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 };
