@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/Button.h"
+#include "Interfaces/IHttpRequest.h"
 #include "MainMenuWidget.generated.h"
 
 /**
@@ -14,6 +16,24 @@ class DAYONE_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void NativeConstruct() override;
+
 private:
-	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* PlayButton;
+	UFUNCTION()
+	void OnPlayButtonClicked();
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* SettingsButton;
+	UFUNCTION()
+	void OnSettingsButtonClicked();
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* ExitButton;
+	UFUNCTION()
+	void OnExitButtonClicked();
+
+	void OnGetSettingsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 };
