@@ -18,19 +18,18 @@ class DAYONE_API UMainMenuWidget : public UUserWidget
 
 protected:
 	virtual void NativeConstruct() override;
-
-private:
-	UPROPERTY(meta = (BindWidget))
+	
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UButton* PlayButton;
 	UFUNCTION()
 	void OnPlayButtonClicked();
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UButton* SettingsButton;
 	UFUNCTION()
 	void OnSettingsButtonClicked();
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UButton* ExitButton;
 	UFUNCTION()
 	void OnExitButtonClicked();
