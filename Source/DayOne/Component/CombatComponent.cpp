@@ -38,7 +38,22 @@ void UCombatComponent::EquipWeapon(ASwatCharacter* Character, AWeapon* Weapon)
 void UCombatComponent::AimTarget(bool bAim)
 {
 	bIsAiming = bAim;
+	ASwatCharacter* OwnerCharacter = Cast<ASwatCharacter>(GetOwner());
+	if (OwnerCharacter)
+	{
+		OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
 	ServerAimTarget(bAim);
+}
+
+void UCombatComponent::ServerAimTarget_Implementation(bool bAim)
+{
+	bIsAiming = bAim;
+	ASwatCharacter* OwnerCharacter = Cast<ASwatCharacter>(GetOwner());
+	if (OwnerCharacter)
+	{
+		OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::OnRep_CurrentWeapon()
@@ -52,11 +67,6 @@ void UCombatComponent::OnRep_CurrentWeapon()
 		//Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		//Character->bUseControllerRotationYaw = true;
 	}
-}
-
-void UCombatComponent::ServerAimTarget_Implementation(bool bAim)
-{
-	bIsAiming = bAim;
 }
 
 void UCombatComponent::BeginPlay()
