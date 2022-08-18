@@ -4,6 +4,7 @@
 #include "SwatCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "DayOne/Component/CombatComponent.h"
 #include "DayOne/Weapon/Weapon.h"
@@ -40,6 +41,10 @@ ASwatCharacter::ASwatCharacter()
 	// Create custom combat component
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
 	Combat->SetIsReplicated(true);
+
+	// Set capsule and mesh ignore collider with camera
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 void ASwatCharacter::PostInitializeComponents()
