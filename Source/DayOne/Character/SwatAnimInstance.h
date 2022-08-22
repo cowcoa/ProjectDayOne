@@ -40,5 +40,9 @@ private:
 	float Lean;
 	FRotator LastFrameCharacterRotation;
 	FRotator CurrFrameCharacterRotation;
-	
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	float AOYaw;
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	float AOPitch;
 };

@@ -54,12 +54,18 @@ void USwatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	
 	LastFrameCharacterRotation = CurrFrameCharacterRotation;
 	CurrFrameCharacterRotation = Character->GetActorRotation();
-	UE_LOG(LogTemp, Warning, TEXT("LastFrameCharacterRotation yaw: %f, CurrFrameCharacterRotation yaw: %f"), LastFrameCharacterRotation.Yaw, CurrFrameCharacterRotation.Yaw);
+	//UE_LOG(LogTemp, Warning, TEXT("LastFrameCharacterRotation yaw: %f, CurrFrameCharacterRotation yaw: %f"), LastFrameCharacterRotation.Yaw, CurrFrameCharacterRotation.Yaw);
 	FRotator DeltaActorRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrFrameCharacterRotation, LastFrameCharacterRotation);
 	//UE_LOG(LogTemp, Warning, TEXT("LastFrameCharacterRotation yaw: %f, CurrentDeltaMovingRotation yaw: %f, DeltaActorRotation yaw: %f"), LastFrameCharacterRotation.Yaw, CurrentDeltaMovingRotation.Yaw, DeltaActorRotation.Yaw);
 	
 	float DeltaYaw = DeltaActorRotation.Yaw / DeltaSeconds;
 	float CurrentDeltaYaw = UKismetMathLibrary::FInterpTo(Lean, DeltaYaw, DeltaSeconds, 5);
 	Lean = UKismetMathLibrary::Clamp(CurrentDeltaYaw, -180, 180);
-	UE_LOG(LogTemp, Warning, TEXT("Lean: %f"), Lean);
+	//UE_LOG(LogTemp, Warning, TEXT("Lean: %f"), Lean);
+
+	// Aim Offsets
+	AOYaw = Character->GetAOYaw();
+	AOPitch = Character->GetAOPitch();
+
+	//UE_LOG(LogTemp, Warning, TEXT("AO Yaw: %f"), AOYaw);
 }

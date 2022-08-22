@@ -10,11 +10,12 @@
 #include "DayOne/Weapon/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 ASwatCharacter::ASwatCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	// Enable replication
 	bReplicates = true;
 
@@ -70,6 +71,7 @@ void ASwatCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateAimOffset(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -98,6 +100,53 @@ void ASwatCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ThisClass, AvailableWeapon, COND_OwnerOnly);
+}
+
+void ASwatCharacter::UpdateAimOffset(float DeltaTime)
+{
+	if (Combat == nullptr || Combat->GetWeapon() == nullptr) return;
+
+	// Compute character speed on XY plane
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.f;
+	float Speed = Velocity.Size();
+	bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+	//UE_LOG(LogTemp, Warning, TEXT("Speed: %f"), Speed);
+	
+	// We are standing
+	if (Speed == 0.0f && !bIsInAir)
+	{
+		
+		FRotator CurrentAimDir = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+		FRotator AimOffset = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimDir, StandAimDir);
+		AoYaw = AimOffset.Yaw;
+
+		if (HasAuthority() && !IsLocallyControlled())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("GetBaseAimRotation().Yaw in Character: %f"), GetBaseAimRotation().Yaw);
+			UE_LOG(LogTemp, Warning, TEXT("AO Yaw in Character: %f"), AoYaw);
+		}
+		bUseControllerRotationYaw = false;
+	}
+	// We are moving
+	if (Speed > 0.0f || bIsInAir)
+	{
+		StandAimDir = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+		AoYaw = 0.0f;
+
+		UE_LOG(LogTemp, Warning, TEXT("Moving"));
+		bUseControllerRotationYaw = true;
+	}
+
+	AoPitch = GetBaseAimRotation().Pitch;
+	if (AoPitch > 90.f && !IsLocallyControlled())
+	{
+		// map pitch from [270, 360) to [-90, 0)
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AoPitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AoPitch);
+	}
 }
 
 // Implement player input callback

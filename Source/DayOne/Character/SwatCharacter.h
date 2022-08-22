@@ -26,6 +26,9 @@ public:
 	FORCEINLINE bool IsCrouching() const { return bIsCrouched; }
 	FORCEINLINE bool IsAiming() const { return Combat && Combat->IsAiming(); }
 
+	FORCEINLINE float GetAOYaw() const { return AoYaw; }
+	FORCEINLINE float GetAOPitch() const { return AoPitch; }
+
 protected:
 	// Player components
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -36,6 +39,8 @@ protected:
 	class UWidgetComponent* Hud;
 	UPROPERTY(VisibleAnywhere, Category = "Combat")
 	class UCombatComponent* Combat;
+
+	void UpdateAimOffset(float DeltaTime);
 	
 private:
 	// Player input callback
@@ -62,4 +67,9 @@ private:
 	// @param LastWeapon - last value of AvailableWeapon
 	UFUNCTION()
 	void OnRep_AvailableWeapon(class AWeapon* LastWeapon);
+
+	// AimOffsets
+	float AoYaw = 0.0f;
+	float AoPitch = 0.0f;
+	FRotator StandAimDir;
 };
