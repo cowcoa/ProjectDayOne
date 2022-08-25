@@ -26,6 +26,8 @@ void USwatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		if (Character == nullptr) return;
 	}
 
+	Weapon = Character->GetWeapon();
+
 	// Compute character speed on XY plane
 	FVector Velocity = Character->GetVelocity();
 	Velocity.Z = 0.f;
@@ -68,4 +70,17 @@ void USwatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	AOPitch = Character->GetAOPitch();
 
 	//UE_LOG(LogTemp, Warning, TEXT("AO Yaw: %f"), AOYaw);
+
+	// FABRIK
+	if (Character && Character->GetMesh() && Weapon)
+	{
+		FTransform WeaponWorldTransform = Weapon->GetMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
+
+		FVector BonePosition;
+		FRotator BoneRotation;
+		Character->GetMesh()->TransformToBoneSpace(FName("RightHand"), WeaponWorldTransform.GetLocation(), FRotator::ZeroRotator, BonePosition, BoneRotation);
+
+		LeftHandTrans.SetLocation(BonePosition);
+		LeftHandTrans.SetRotation(FQuat(BoneRotation));
+	}
 }

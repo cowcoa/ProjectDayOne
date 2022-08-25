@@ -45,4 +45,9 @@ private:
 	float AOYaw;
 	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	float AOPitch;
+
+	// FABRIK Transform
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	FTransform LeftHandTrans;
+	class AWeapon* Weapon;
 };

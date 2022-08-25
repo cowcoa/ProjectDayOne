@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "DayOne/Component/CombatComponent.h"
+#include "DayOne/Weapon/Weapon.h"
 #include "GameFramework/Character.h"
 #include "SwatCharacter.generated.h"
 
@@ -28,6 +29,16 @@ public:
 
 	FORCEINLINE float GetAOYaw() const { return AoYaw; }
 	FORCEINLINE float GetAOPitch() const { return AoPitch; }
+
+	FORCEINLINE AWeapon* GetWeapon()
+	{
+		AWeapon* Weapon = nullptr;
+		if (Combat)
+		{
+			Weapon = Combat->GetWeapon();
+		}
+		return Weapon;
+	}
 
 protected:
 	// Player components

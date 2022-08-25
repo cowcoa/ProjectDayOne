@@ -33,6 +33,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetState(EWeaponState State);
 
+	FORCEINLINE USkeletalMeshComponent* GetMesh() { return Mesh; }
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
