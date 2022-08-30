@@ -117,23 +117,42 @@ void ASwatCharacter::UpdateAimOffset(float DeltaTime)
 	// We are standing
 	if (Speed == 0.0f && !bIsInAir)
 	{
-		
 		FRotator CurrentAimDir = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
 		FRotator AimOffset = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimDir, StandAimDir);
 		AoYaw = AimOffset.Yaw;
+		bUseControllerRotationYaw = true;
 
-		if (HasAuthority() && !IsLocallyControlled())
+		// Set turn in place
+		if (TurnInPlace == ETurnInPlaceState::ETIPS_No)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("GetBaseAimRotation().Yaw in Character: %f"), GetBaseAimRotation().Yaw);
-			UE_LOG(LogTemp, Warning, TEXT("AO Yaw in Character: %f"), AoYaw);
+			AoYawInterp = AoYaw;
 		}
-		bUseControllerRotationYaw = false;
+		if (AoYaw > 90.0f)
+		{
+			TurnInPlace = ETurnInPlaceState::ETIPS_Right;
+		} else if (AoYaw < -90.0f)
+		{
+			TurnInPlace = ETurnInPlaceState::ETIPS_Left;
+		}
+		// during turn
+		if (TurnInPlace != ETurnInPlaceState::ETIPS_No)
+		{
+			AoYawInterp = UKismetMathLibrary::FInterpTo(AoYawInterp, 0.0f, DeltaTime, 5.0f);
+			AoYaw = AoYawInterp;
+			if (UKismetMathLibrary::Abs(AoYaw) < 15.0f) // stop turning
+			{
+				UE_LOG(LogTemp, Warning, TEXT("==== Turning Stop ===="));
+				TurnInPlace = ETurnInPlaceState::ETIPS_No;
+				StandAimDir = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+			}
+		}
 	}
 	// We are moving
 	if (Speed > 0.0f || bIsInAir)
 	{
 		StandAimDir = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
 		AoYaw = 0.0f;
+		TurnInPlace = ETurnInPlaceState::ETIPS_No;
 
 		UE_LOG(LogTemp, Warning, TEXT("Moving"));
 		bUseControllerRotationYaw = true;
@@ -147,6 +166,11 @@ void ASwatCharacter::UpdateAimOffset(float DeltaTime)
 		FVector2D OutRange(-90.f, 0.f);
 		AoPitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AoPitch);
 	}
+}
+
+void ASwatCharacter::UpdateTurnInPlace(float DeltaTime)
+{
+	
 }
 
 // Implement player input callback

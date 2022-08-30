@@ -83,4 +83,7 @@ void USwatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		LeftHandTrans.SetLocation(BonePosition);
 		LeftHandTrans.SetRotation(FQuat(BoneRotation));
 	}
+
+	// Update turn in place state
+	TurnInPlace = Character->GetTurnInPlace();
 }

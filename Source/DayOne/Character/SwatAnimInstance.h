@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "DayOne/Types/TurnInPlaceState.h"
 #include "SwatAnimInstance.generated.h"
 
 /**
@@ -50,4 +51,8 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	FTransform LeftHandTrans;
 	class AWeapon* Weapon;
+
+	// Turn In Place
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	ETurnInPlaceState TurnInPlace;
 };

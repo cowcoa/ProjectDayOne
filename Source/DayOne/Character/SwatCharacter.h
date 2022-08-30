@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "DayOne/Component/CombatComponent.h"
+#include "DayOne/Types/TurnInPlaceState.h"
 #include "DayOne/Weapon/Weapon.h"
 #include "GameFramework/Character.h"
 #include "SwatCharacter.generated.h"
@@ -40,6 +41,8 @@ public:
 		return Weapon;
 	}
 
+	FORCEINLINE ETurnInPlaceState GetTurnInPlace() const { return TurnInPlace; }
+
 protected:
 	// Player components
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -52,6 +55,8 @@ protected:
 	class UCombatComponent* Combat;
 
 	void UpdateAimOffset(float DeltaTime);
+
+	void UpdateTurnInPlace(float DeltaTime);
 	
 private:
 	// Player input callback
@@ -81,6 +86,10 @@ private:
 
 	// AimOffsets
 	float AoYaw = 0.0f;
+	float AoYawInterp = 0.0f;
 	float AoPitch = 0.0f;
 	FRotator StandAimDir;
+
+	// TurnInPlace state
+	ETurnInPlaceState TurnInPlace = ETurnInPlaceState::ETIPS_No;
 };
