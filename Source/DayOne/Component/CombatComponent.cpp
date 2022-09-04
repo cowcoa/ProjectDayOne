@@ -56,6 +56,16 @@ void UCombatComponent::ServerAimTarget_Implementation(bool bAim)
 	}
 }
 
+void UCombatComponent::Fire(bool bPressed)
+{
+	bFiring = bPressed;
+	ASwatCharacter* OwnerCharacter = Cast<ASwatCharacter>(GetOwner());
+	if (OwnerCharacter && bFiring)
+	{
+		OwnerCharacter->PlayFireMontage(IsAiming());
+	}
+}
+
 void UCombatComponent::OnRep_CurrentWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentWeapon"));

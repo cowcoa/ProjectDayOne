@@ -90,6 +90,8 @@ void ASwatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		PlayerInputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &ThisClass::OnCrouch);
 		PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &ThisClass::OnAimHold);
 		PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &ThisClass::OnAimRelease);
+		PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &ThisClass::OnFireHold);
+		PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &ThisClass::OnFireRelease);
 		
 		PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::OnMoveForward);
 		PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::OnMoveRight);
@@ -103,6 +105,22 @@ void ASwatCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ThisClass, AvailableWeapon, COND_OwnerOnly);
+}
+
+void ASwatCharacter::PlayFireMontage(bool bAiming)
+{
+	if (IsWeaponEquipped())
+	{
+		
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance && WeaponFireMontage)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("playing fire montage"));
+			AnimInstance->Montage_Play(WeaponFireMontage);
+			FName SectionName = bAiming ? FName("FireAim") : FName("FireHip");
+			AnimInstance->Montage_JumpToSection(SectionName);
+		}
+	}
 }
 
 void ASwatCharacter::UpdateAimOffset(float DeltaTime)
@@ -256,6 +274,22 @@ void ASwatCharacter::OnAimRelease()
 	if (IsWeaponEquipped())
 	{
 		Combat->AimTarget(false);
+	}
+}
+
+void ASwatCharacter::OnFireHold()
+{
+	if (Combat)
+	{
+		Combat->Fire(true);
+	}
+}
+
+void ASwatCharacter::OnFireRelease()
+{
+	if (Combat)
+	{
+		Combat->Fire(false);
 	}
 }
 

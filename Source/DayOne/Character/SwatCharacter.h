@@ -43,6 +43,8 @@ public:
 
 	FORCEINLINE ETurnInPlaceState GetTurnInPlace() const { return TurnInPlace; }
 
+	void PlayFireMontage(bool bAiming);
+
 protected:
 	// Player components
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -53,6 +55,8 @@ protected:
 	class UWidgetComponent* Hud;
 	UPROPERTY(VisibleAnywhere, Category = "Combat")
 	class UCombatComponent* Combat;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class UAnimMontage* WeaponFireMontage;
 
 	void UpdateAimOffset(float DeltaTime);
 
@@ -76,6 +80,9 @@ private:
 	// Press/Release RIGHT MOUSE BUTTON to aim/un-aim
 	void OnAimHold();
 	void OnAimRelease();
+	// Fire
+	void OnFireHold();
+	void OnFireRelease();
 	
 	// Weapon available near the character(can be picked up)
 	UPROPERTY(ReplicatedUsing=OnRep_AvailableWeapon)

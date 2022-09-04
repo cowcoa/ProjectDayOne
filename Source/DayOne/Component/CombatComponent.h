@@ -35,6 +35,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsAiming() const { return bIsAiming; }
 
+	void Fire(bool bPressed);
+
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentWeapon)
 	AWeapon* CurrentWeapon = nullptr;
@@ -50,4 +52,6 @@ private:
 	float BaseWalkSpeed = 600;
 	UPROPERTY(EditDefaultsOnly, meta=(AllowPrivateAccess="true"))
 	float AimWalkSpeed = 300;
+
+	bool bFiring;
 };
