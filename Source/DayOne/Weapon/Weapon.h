@@ -35,6 +35,8 @@ public:
 
 	FORCEINLINE USkeletalMeshComponent* GetMesh() { return Mesh; }
 
+	void Fire();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -59,6 +61,8 @@ private:
 	class UWidgetComponent* Hud;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* Collider;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UAnimationAsset* FireAnim;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentState)
 	EWeaponState CurrentState = EWeaponState::EWS_Init;

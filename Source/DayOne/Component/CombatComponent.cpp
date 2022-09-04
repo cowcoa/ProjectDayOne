@@ -59,10 +59,27 @@ void UCombatComponent::ServerAimTarget_Implementation(bool bAim)
 void UCombatComponent::Fire(bool bPressed)
 {
 	bFiring = bPressed;
+	if (bFiring)
+	{
+		ServerFire();
+	}
+}
+
+void UCombatComponent::ServerFire_Implementation()
+{
+	MulticastFire();
+}
+
+void UCombatComponent::MulticastFire_Implementation()
+{
 	ASwatCharacter* OwnerCharacter = Cast<ASwatCharacter>(GetOwner());
-	if (OwnerCharacter && bFiring)
+	if (OwnerCharacter)
 	{
 		OwnerCharacter->PlayFireMontage(IsAiming());
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->Fire();
+		}
 	}
 }
 

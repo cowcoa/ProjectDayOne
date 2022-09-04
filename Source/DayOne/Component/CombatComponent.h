@@ -36,6 +36,10 @@ public:
 	FORCEINLINE bool IsAiming() const { return bIsAiming; }
 
 	void Fire(bool bPressed);
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFire();
 
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentWeapon)
