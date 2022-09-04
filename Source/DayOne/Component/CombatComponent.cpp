@@ -7,11 +7,12 @@
 #include "DayOne/Weapon/Weapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 // NOTE: This functions only execute on SERVER side
@@ -83,6 +84,52 @@ void UCombatComponent::MulticastFire_Implementation()
 	}
 }
 
+void UCombatComponent::TraceByCrosshair(FHitResult& HitResult)
+{
+	FVector2d ViewPortSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewPortSize);
+	}
+	
+	FVector2d CrosshairPosition(ViewPortSize.X / 2.0f, ViewPortSize.Y / 2.0f);
+
+	FVector WorldPosition;
+	FVector WorldDirection;
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+		UGameplayStatics::GetPlayerController(this, 0),
+		CrosshairPosition,
+		WorldPosition,
+		WorldDirection
+		);
+
+	if (bScreenToWorld)
+	{
+		FVector Start = WorldPosition;
+		FVector End = Start + WorldDirection * 100000;
+		GetWorld()->LineTraceSingleByChannel(HitResult,
+			Start,
+			End,
+			ECC_Visibility
+			);
+
+		if (!HitResult.bBlockingHit)
+		{
+			HitResult.ImpactPoint = End;
+		}
+		else
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("ImpactPoint:(%f,%f)"), HitResult.ImpactPoint.X, HitResult.ImpactPoint.Y);
+			DrawDebugSphere(GetWorld(),
+				HitResult.ImpactPoint,
+				10.0f,
+				10.0f,
+				FColor::Red
+				);
+		}
+	}
+}
+
 void UCombatComponent::OnRep_CurrentWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentWeapon"));
@@ -104,6 +151,9 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	FHitResult HitResult;
+	TraceByCrosshair(HitResult);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

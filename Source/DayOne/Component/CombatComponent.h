@@ -41,6 +41,8 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire();
 
+	void TraceByCrosshair(FHitResult& HitResult);
+
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentWeapon)
 	AWeapon* CurrentWeapon = nullptr;
