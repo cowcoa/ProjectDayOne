@@ -37,9 +37,9 @@ public:
 
 	void Fire(bool bPressed);
 	UFUNCTION(Server, Reliable)
-	void ServerFire();
+	void ServerFire(const FVector_NetQuantize& HitTarget);
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFire();
+	void MulticastFire(const FVector_NetQuantize& HitTarget);
 
 	void TraceByCrosshair(FHitResult& HitResult);
 
@@ -60,6 +60,4 @@ private:
 	float AimWalkSpeed = 300;
 
 	bool bFiring;
-
-	FVector HitTarget;
 };

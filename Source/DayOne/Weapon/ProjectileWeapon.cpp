@@ -10,6 +10,8 @@ void AProjectileWeapon::Fire(const FVector& HitResult)
 {
 	Super::Fire(HitResult);
 
+	if (!HasAuthority()) return;
+
 	if (Projectile == nullptr) return;
 
 	USkeletalMeshComponent* WeaponMesh = GetMesh();

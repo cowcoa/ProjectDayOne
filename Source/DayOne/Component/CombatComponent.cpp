@@ -62,16 +62,19 @@ void UCombatComponent::Fire(bool bPressed)
 	bFiring = bPressed;
 	if (bFiring)
 	{
-		ServerFire();
+		FHitResult HitResult;
+		TraceByCrosshair(HitResult);
+		
+		ServerFire(HitResult.ImpactPoint);
 	}
 }
 
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& HitTarget)
 {
-	MulticastFire();
+	MulticastFire(HitTarget);
 }
 
-void UCombatComponent::MulticastFire_Implementation()
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& HitTarget)
 {
 	ASwatCharacter* OwnerCharacter = Cast<ASwatCharacter>(GetOwner());
 	if (OwnerCharacter)
@@ -116,18 +119,6 @@ void UCombatComponent::TraceByCrosshair(FHitResult& HitResult)
 		if (!HitResult.bBlockingHit)
 		{
 			HitResult.ImpactPoint = End;
-			HitTarget = End;
-		}
-		else
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("ImpactPoint:(%f,%f)"), HitResult.ImpactPoint.X, HitResult.ImpactPoint.Y);
-			DrawDebugSphere(GetWorld(),
-				HitResult.ImpactPoint,
-				10.0f,
-				10.0f,
-				FColor::Red
-				);
-			HitTarget = HitResult.ImpactPoint;
 		}
 	}
 }
@@ -154,8 +145,6 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FHitResult HitResult;
-	TraceByCrosshair(HitResult);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
