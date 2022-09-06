@@ -79,7 +79,7 @@ void UCombatComponent::MulticastFire_Implementation()
 		OwnerCharacter->PlayFireMontage(IsAiming());
 		if (CurrentWeapon)
 		{
-			CurrentWeapon->Fire();
+			CurrentWeapon->Fire(HitTarget);
 		}
 	}
 }
@@ -116,6 +116,7 @@ void UCombatComponent::TraceByCrosshair(FHitResult& HitResult)
 		if (!HitResult.bBlockingHit)
 		{
 			HitResult.ImpactPoint = End;
+			HitTarget = End;
 		}
 		else
 		{
@@ -126,6 +127,7 @@ void UCombatComponent::TraceByCrosshair(FHitResult& HitResult)
 				10.0f,
 				FColor::Red
 				);
+			HitTarget = HitResult.ImpactPoint;
 		}
 	}
 }

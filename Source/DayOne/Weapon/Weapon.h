@@ -35,7 +35,7 @@ public:
 
 	FORCEINLINE USkeletalMeshComponent* GetMesh() { return Mesh; }
 
-	void Fire();
+	virtual void Fire(const FVector& HitResult);
 
 protected:
 	virtual void BeginPlay() override;
