@@ -54,6 +54,9 @@ protected:
 		                      UPrimitiveComponent* OtherComp,
 		                      int32 OtherBodyIndex);
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ABulletCasing> CasingClass;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* Mesh;

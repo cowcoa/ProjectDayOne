@@ -3,9 +3,11 @@
 
 #include "Weapon.h"
 
+#include "BulletCasing.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "DayOne/Character/SwatCharacter.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
 
 AWeapon::AWeapon()
@@ -47,6 +49,17 @@ void AWeapon::Fire(const FVector& HitTarget)
 	if (FireAnim)
 	{
 		GetMesh()->PlayAnimation(FireAnim, false);
+	}
+	if (CasingClass)
+	{
+		const USkeletalMeshSocket* AmmoEjectSocket = Mesh->GetSocketByName(FName("AmmoEject"));
+		FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(Mesh);
+		
+		GetWorld()->SpawnActor<ABulletCasing>(
+			CasingClass,
+			SocketTransform.GetLocation(),
+			SocketTransform.Rotator()
+			);
 	}
 }
 
