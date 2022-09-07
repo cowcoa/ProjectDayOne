@@ -17,6 +17,15 @@ class DAYONE_API AProjectile : public AActor
 public:	
 	AProjectile();
 
+	UFUNCTION()
+	virtual void OnHit(UPrimitiveComponent* HitComponent,
+		               AActor* OtherActor,
+		               UPrimitiveComponent* OtherComp,
+		               FVector NormalImpulse,
+		               const FHitResult& Hit);
+
+	virtual void Destroyed() override;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -31,4 +40,9 @@ public:
 	class UParticleSystem* Tracer;
 
 	class UParticleSystemComponent* ParticleSystemComponent;
+
+	UPROPERTY(EditAnywhere)
+	class UParticleSystem* HitEffect;
+	UPROPERTY(EditAnywhere)
+	class USoundCue* HitSound;
 };

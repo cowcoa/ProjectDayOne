@@ -7,6 +7,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -27,6 +28,28 @@ AProjectile::AProjectile()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
+void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
+{
+	this->Destroy();
+}
+
+void AProjectile::Destroyed()
+{
+	Super::Destroyed();
+	if (HitEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+			HitEffect,
+			GetActorTransform()
+			);
+	}
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
+	}
+}
+
 // Called when the game starts or when spawned
 void AProjectile::BeginPlay()
 {
@@ -42,6 +65,11 @@ void AProjectile::BeginPlay()
 			GetActorRotation(),
 			EAttachLocation::KeepWorldPosition
 			);
+	}
+
+	if (HasAuthority())
+	{
+		CollisionBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
 	}
 }
 
