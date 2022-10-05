@@ -30,7 +30,7 @@ enum class EGaitState : uint8
 UENUM(BlueprintType, meta=(ScriptName="StanceState"))
 enum class EStanceState : uint8
 {
-	SS_Standing UMETA(DisplayName = "Standing"),
+	SS_Standing = 0 UMETA(DisplayName = "Standing"),
 	SS_Crouching UMETA(DisplayName = "Crouching"),
 	SS_MAX
 };
@@ -39,7 +39,7 @@ UENUM(BlueprintType, meta=(ScriptName="RotationMode"))
 enum class ERotationMode : uint8
 {
 	// Always move toward the input velocity direction
-	// RM_Velocity UMETA(DisplayName = "Velocity"),
+	RM_Velocity = 0 UMETA(DisplayName = "Velocity"),
 	// Always move toward the looking direction
 	RM_Looking UMETA(DisplayName = "Looking"),
 	RM_Aiming UMETA(DisplayName = "Aiming"),
@@ -58,7 +58,9 @@ enum class EMovementModel : uint8
 UENUM(BlueprintType, meta=(ScriptName="ViewMode"))
 enum class EViewMode : uint8
 {
+	// Current character on in third person view,
+	// We are considering make character in first person view while they are aiming.
 	VM_ThirdPerson = 0 UMETA(DisplayName = "ThirdPerson"),
-	// VM_FirstPerson = 0 UMETA(DisplayName = "FirstPerson"),
-	MM_MAX
+	VM_FirstPerson UMETA(DisplayName = "FirstPerson"),
+	VM_MAX
 };

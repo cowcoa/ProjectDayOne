@@ -37,9 +37,15 @@ struct FMovementSettingsState : public FTableRowBase
 {
 	GENERATED_BODY()
 
+	// Character always move toward his velocity.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FMovementSettingsStance Velocity;
+
+	// Character always move toward controller direction
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FMovementSettingsStance Looking;
 
+	// Character always move toward aiming direction.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FMovementSettingsStance Aiming;
 };
