@@ -34,6 +34,8 @@ ABaseCharacter::ABaseCharacter()
 	ThirdPersonFOV = 90.0f;
 
 	PreviousAimYaw = 0.0f;
+
+	bRightShoulder = true;
 }
 
 void ABaseCharacter::BeginPlay()
@@ -214,20 +216,60 @@ void ABaseCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 {
 	Super::CalcCamera(DeltaTime, OutResult);
 
-	//OutResult.Location = FVector(OutResult.Location.X, OutResult.Location.Y, OutResult.Location.Z);
-
-	//UE_LOG(LogTemp, Warning, TEXT("ABaseCharacter::CalcCamera called"));
-
 	// Step 1: Get Camera Parameters from CharacterBP via the Camera Interface
-	FTransform PivotTarget = GetActorTransform();
+	FTransform PivotTarget = GetPivotTarget();
 	float TPFOV = ThirdPersonFOV;
 
-	// Step 2: Calculate Target Camera Rotation. Use the Control Rotation and interpolate for smooth camera rotation.
-	//float RotationLagSpeed = CurrentCameraSettings.RotationLagSpeed;
-	//FRotator CurrentRotation = UGameplayStatics::GetPlayerCameraManager(this, 0)->GetCameraRotation();
-	//FRotator TargetRotation = GetControlRotation();
+	// Step 2: Calculate Target Camera Rotation.
+	// Use the Control Rotation and interpolate for smooth camera rotation.
+	FRotator CameraRotation = UGameplayStatics::GetPlayerCameraManager(this, 0)->GetCameraRotation();
+	FRotator ControllerRotation = GetControlRotation();
+	float RotationLagSpeed = CurrentCameraSettings.RotationLagSpeed;
+	TargetCameraRotation = UKismetMathLibrary::RInterpTo(CameraRotation, ControllerRotation, DeltaTime, RotationLagSpeed);
 
+	// Step 3: Calculate the Smoothed Pivot Target (Orange Sphere).
+	// Get the 3P Pivot Target (Green Sphere) and interpolate using axis independent lag for maximum control.
+	FVector PivotLagSpeeds = CurrentCameraSettings.PivotLagSpeed;
+	FVector LaggedLocation = CalculateAxisIndependentLag(SmoothedPivotTarget.GetLocation(), PivotTarget.GetLocation(), TargetCameraRotation, PivotLagSpeeds);
+	SmoothedPivotTarget = UKismetMathLibrary::MakeTransform(LaggedLocation, PivotTarget.Rotator());
+
+	// Step 4: Calculate Pivot Location (BlueSphere).
+	// Get the Smoothed Pivot Target and apply local offsets for further camera control.
+	FVector CharacterPivotOffset = CurrentCameraSettings.PivotOffset;
+	FVector PivotForwardVector = UKismetMathLibrary::GetForwardVector(SmoothedPivotTarget.Rotator()) * CharacterPivotOffset.X;
+	FVector PivotRightVector = UKismetMathLibrary::GetRightVector(SmoothedPivotTarget.Rotator()) * CharacterPivotOffset.Y;
+	FVector PivotUpVector = UKismetMathLibrary::GetUpVector(SmoothedPivotTarget.Rotator()) * CharacterPivotOffset.Z;
+	PivotLocation = SmoothedPivotTarget.GetLocation() + PivotForwardVector + PivotRightVector + PivotUpVector;
+
+	// Step 5: Calculate Target Camera Location.
+	// Get the Pivot location and apply camera relative offsets.
+	FVector CameraOffset = CurrentCameraSettings.CameraOffset;
+	FVector CameraForwardVector = UKismetMathLibrary::GetForwardVector(TargetCameraRotation) * CameraOffset.X;
+	FVector CameraRightVector = UKismetMathLibrary::GetRightVector(TargetCameraRotation) * CameraOffset.Y;
+	FVector CameraUpVector = UKismetMathLibrary::GetUpVector(TargetCameraRotation) * CameraOffset.Z;
+	TargetCameraLocation = PivotLocation + CameraForwardVector + CameraRightVector + CameraUpVector;
 	
+	// Step 6: Trace for an object between the camera and character to apply a corrective offset.
+	// Trace origins are set within the Character BP via the Camera Interface.
+	// Functions like the normal spring arm, but can allow for different trace origins regardless of the pivot. 
+	FVector TraceOrigin;
+	float TraceRadius;
+	ETraceTypeQuery TraceChannel;
+	TArray<AActor*> ActorsToIgnore;
+	FHitResult OutHit;
+	GetTraceParams(TraceOrigin, TraceRadius, TraceChannel);
+	UKismetSystemLibrary::SphereTraceSingle(this, TraceOrigin, TargetCameraLocation, TraceRadius, TraceChannel, false, ActorsToIgnore, EDrawDebugTrace::ForOneFrame, OutHit, true);
+	if (OutHit.bBlockingHit && !OutHit.bStartPenetrating)
+	{
+		TargetCameraLocation = (OutHit.Location - OutHit.TraceEnd) + TargetCameraLocation;
+	}
+
+	// Step 8: Lerp First Person Override and return target camera parameters.
+
+	// Final output
+	OutResult.Location = TargetCameraLocation;
+	OutResult.Rotation = TargetCameraRotation;
+	OutResult.FOV = TPFOV;
 }
 
 // Called every frame
@@ -694,4 +736,50 @@ FCameraSettings ABaseCharacter::GetTargetCameraSettings()
 
 	checkNoEntry();
 	return CameraData.Crouching->Walking;
+}
+
+FTransform ABaseCharacter::GetPivotTarget()
+{
+	FVector HeadLocation = GetMesh()->GetSocketLocation(FName("head"));
+	FVector RootLocation = GetMesh()->GetSocketLocation(FName("root"));
+
+	TArray<FVector> Vectors;
+	Vectors.Add(HeadLocation);
+	Vectors.Add(RootLocation);
+	
+	FVector AvgLocation = UKismetMathLibrary::GetVectorArrayAverage(Vectors);
+
+	return UKismetMathLibrary::MakeTransform(AvgLocation, GetActorRotation(), FVector::One());
+}
+
+FVector ABaseCharacter::CalculateAxisIndependentLag(FVector CurrentLocation,
+													FVector TargetLocation,
+													FRotator CameraRotation,
+													FVector LagSpeeds)
+{
+	FRotator CameraRotationYaw(0,CameraRotation.Yaw, 0.0f);
+	float DeltaSeconds = UGameplayStatics::GetWorldDeltaSeconds(this);
+
+	FVector UnrotatedCurrentLocation = CameraRotationYaw.UnrotateVector(CurrentLocation);
+	FVector UnrotatedTargetLocation = CameraRotationYaw.UnrotateVector(TargetLocation);
+
+	float UnrotatedLocationX = UKismetMathLibrary::FInterpTo(UnrotatedCurrentLocation.X, UnrotatedTargetLocation.X, DeltaSeconds, LagSpeeds.X);
+	float UnrotatedLocationY = UKismetMathLibrary::FInterpTo(UnrotatedCurrentLocation.Y, UnrotatedTargetLocation.Y, DeltaSeconds, LagSpeeds.Y);
+	float UnrotatedLocationZ = UKismetMathLibrary::FInterpTo(UnrotatedCurrentLocation.Z, UnrotatedTargetLocation.Z, DeltaSeconds, LagSpeeds.Z);
+
+	return CameraRotationYaw.RotateVector(FVector(UnrotatedLocationX, UnrotatedLocationY, UnrotatedLocationZ));
+}
+
+void ABaseCharacter::GetTraceParams(FVector& TraceOrigin, float& TraceRadius, ETraceTypeQuery& TraceChannel)
+{
+	TraceRadius = 15.0f;
+	TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Camera);
+	if (bRightShoulder)
+	{
+		TraceOrigin = GetMesh()->GetSocketLocation(FName("TP_CameraTrace_R"));
+	}
+	else
+	{
+		TraceOrigin = GetMesh()->GetSocketLocation(FName("TP_CameraTrace_L"));
+	}
 }

@@ -251,8 +251,7 @@ protected:
 
 
 	// Camera patameters
-	UPROPERTY(EditAnywhere)
-	float ThirdPersonFOV;
+
 	
 	// Data tables
 
@@ -261,4 +260,17 @@ protected:
 	UDataTable* CameraModel;
 	FCameraData CameraData;
 	FCameraSettings CurrentCameraSettings;
+
+private:
+	// camera relative
+	FTransform GetPivotTarget();
+	FRotator TargetCameraRotation;
+	FTransform SmoothedPivotTarget;
+	FVector CalculateAxisIndependentLag(FVector CurrentLocation, FVector TargetLocation, FRotator CameraRotation, FVector LagSpeeds);
+	FVector PivotLocation;
+	FVector TargetCameraLocation;
+	UPROPERTY(EditAnywhere)
+	float ThirdPersonFOV;
+	bool bRightShoulder;
+	void GetTraceParams(FVector& TraceOrigin, float& TraceRadius, ETraceTypeQuery& TraceChannel);
 };
