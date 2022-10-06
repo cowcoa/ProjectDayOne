@@ -232,7 +232,7 @@ void ABaseCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 	FVector PivotLagSpeeds = CurrentCameraSettings.PivotLagSpeed;
 	FVector LaggedLocation = CalculateAxisIndependentLag(SmoothedPivotTarget.GetLocation(), PivotTarget.GetLocation(), TargetCameraRotation, PivotLagSpeeds);
 	SmoothedPivotTarget = UKismetMathLibrary::MakeTransform(LaggedLocation, PivotTarget.Rotator());
-
+	
 	// Step 4: Calculate Pivot Location (BlueSphere).
 	// Get the Smoothed Pivot Target and apply local offsets for further camera control.
 	FVector CharacterPivotOffset = CurrentCameraSettings.PivotOffset;
@@ -240,7 +240,7 @@ void ABaseCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 	FVector PivotRightVector = UKismetMathLibrary::GetRightVector(SmoothedPivotTarget.Rotator()) * CharacterPivotOffset.Y;
 	FVector PivotUpVector = UKismetMathLibrary::GetUpVector(SmoothedPivotTarget.Rotator()) * CharacterPivotOffset.Z;
 	PivotLocation = SmoothedPivotTarget.GetLocation() + PivotForwardVector + PivotRightVector + PivotUpVector;
-
+	
 	// Step 5: Calculate Target Camera Location.
 	// Get the Pivot location and apply camera relative offsets.
 	FVector CameraOffset = CurrentCameraSettings.CameraOffset;
@@ -460,7 +460,8 @@ void ABaseCharacter::UpdateCharacterMovement()
 	UpdateDynamicMovementSettings(AllowedGait);
 
 	// Cow Add
-	CurrentCameraSettings = GetTargetCameraSettings();
+	GetTargetCameraSettings();
+	// CurrentCameraSettings = GetTargetCameraSettings();
 }
 
 void ABaseCharacter::UpdateGroudedRotation()
@@ -705,15 +706,25 @@ void ABaseCharacter::SetCameraModel()
 
 FCameraSettings ABaseCharacter::GetTargetCameraSettings()
 {
+	float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
 	if (Stance == EStanceState::SS_Standing)
 	{
 		switch (Gait)
 		{
 		case EGaitState::GS_Walking:
+			CurrentCameraSettings.CameraOffset = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.CameraOffset, CameraData.Standing->Walking.CameraOffset, DeltaTime, 1.5f);
+			CurrentCameraSettings.PivotLagSpeed = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.PivotLagSpeed, CameraData.Standing->Walking.PivotLagSpeed, DeltaTime, 1.5f);
+			UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to Walking"))
 			return CameraData.Standing->Walking;
 		case EGaitState::GS_Running:
+			UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to Running"))
+			CurrentCameraSettings.CameraOffset = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.CameraOffset, CameraData.Standing->Running.CameraOffset, DeltaTime, 2.0f);
+			CurrentCameraSettings.PivotLagSpeed = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.PivotLagSpeed, CameraData.Standing->Running.PivotLagSpeed, DeltaTime, 2.0f);
 			return CameraData.Standing->Running;
 		case EGaitState::GS_Sprinting:
+			UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to sprinting"))
+			CurrentCameraSettings.CameraOffset = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.CameraOffset, CameraData.Standing->Sprinting.CameraOffset, DeltaTime, 0.35f);
+			CurrentCameraSettings.PivotLagSpeed = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.PivotLagSpeed, CameraData.Standing->Sprinting.PivotLagSpeed, DeltaTime, 0.35f);
 			return CameraData.Standing->Sprinting;
 		default:
 			checkNoEntry();
