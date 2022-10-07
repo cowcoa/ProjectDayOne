@@ -37,9 +37,6 @@ struct FCameraSettingsGait : public FTableRowBase
 
 struct FCameraData
 {
-	UPROPERTY(EditAnywhere)
 	FCameraSettingsGait* Standing;
-
-	UPROPERTY(EditAnywhere)
 	FCameraSettingsGait* Crouching;
 };

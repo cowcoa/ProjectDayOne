@@ -4,6 +4,7 @@
 #include "BaseCharacter.h"
 
 
+#include "DayOne/Component/ThirdPersonCameraComponent.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -18,6 +19,8 @@ FName ABaseCharacter::StanceInputName(TEXT("Stance"));
 ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	ThirdPersonCamera = CreateDefaultSubobject<UThirdPersonCameraComponent>(TEXT("ThirdPersonCamera"));
 
 	MainAnimInstance = nullptr;
 	MovementData = nullptr;
@@ -92,6 +95,17 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAxis(MoveRightInputName, this, &ThisClass::OnMoveRight);
 	PlayerInputComponent->BindAxis(LookupInputName, this, &ThisClass::OnLookUp);
 	PlayerInputComponent->BindAxis(TurnInputName, this, &ThisClass::OnTurn);
+}
+
+void ABaseCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (ThirdPersonCamera)
+	{
+		ThirdPersonCamera->Character = this;
+	}
+	
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -216,6 +230,9 @@ void ABaseCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 {
 	Super::CalcCamera(DeltaTime, OutResult);
 
+	OutResult = ThirdPersonCamera->GetViewInfo();
+	
+	/*
 	// Step 1: Get Camera Parameters from CharacterBP via the Camera Interface
 	FTransform PivotTarget = GetPivotTarget();
 	float TPFOV = ThirdPersonFOV;
@@ -270,6 +287,7 @@ void ABaseCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 	OutResult.Location = TargetCameraLocation;
 	OutResult.Rotation = TargetCameraRotation;
 	OutResult.FOV = TPFOV;
+	*/
 }
 
 // Called every frame

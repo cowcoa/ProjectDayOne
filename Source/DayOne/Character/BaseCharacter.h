@@ -97,13 +97,24 @@ private:
 public:
 	ABaseCharacter();
 
+	FORCEINLINE EGaitState GetGait() const
+	{
+		return Gait;
+	}
+
+	FORCEINLINE EStanceState GetStance() const
+	{
+		return Stance;
+	}
+
 protected:
 	//
 	// Inherited and override functions.
 	//
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	virtual void PostInitializeComponents() override;
+	
 	virtual void Tick(float DeltaTime) override;
 	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult) override;
 
@@ -273,4 +284,8 @@ private:
 	float ThirdPersonFOV;
 	bool bRightShoulder;
 	void GetTraceParams(FVector& TraceOrigin, float& TraceRadius, ETraceTypeQuery& TraceChannel);
+
+	//
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UThirdPersonCameraComponent* ThirdPersonCamera;
 };
