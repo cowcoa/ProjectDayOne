@@ -17,6 +17,9 @@ struct FMovementSettings : public FTableRowBase
 	float SprintSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UCurveVector* MovementCurve;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UCurveFloat* RotationRateCurve;
 };
 
@@ -48,4 +51,9 @@ struct FMovementSettingsState : public FTableRowBase
 	// Character always move toward aiming direction.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FMovementSettingsStance Aiming;
+};
+
+struct FMovementData
+{
+	FMovementSettingsState* Normal;
 };

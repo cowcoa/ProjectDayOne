@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Camera/CameraComponent.h"
 #include "DayOne/Data/CameraModel.h"
 #include "ThirdPersonCameraComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class DAYONE_API UThirdPersonCameraComponent : public UActorComponent
+// UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS()
+class DAYONE_API UThirdPersonCameraComponent : public UCameraComponent
 {
 	GENERATED_BODY()
 
@@ -23,18 +24,7 @@ public:
 	UThirdPersonCameraComponent();
 	
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	FORCEINLINE FMinimalViewInfo GetViewInfo() const
-	{
-		FMinimalViewInfo OutResult;
-
-		OutResult.Location = TargetCameraLocation;
-		OutResult.Rotation = TargetCameraRotation;
-		OutResult.FOV = TargetCameraFOV;
-
-		return OutResult;
-	}
+	virtual void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView) override;
 
 private:
 	// Pivot target always sync with Character.
@@ -78,11 +68,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="DataTable")
 	UDataTable* CameraModel;
 	FCameraData CameraData;
+	// We need interpolate config value between different config settings.
+	// So we have to keep a settings state.
 	FCameraSettings CurrentCameraSettings;
 
 private:
 	// The output results
-	FVector TargetCameraLocation;
-	FRotator TargetCameraRotation;
+	// FVector TargetCameraLocation;
+	// FRotator TargetCameraRotation;
 	float TargetCameraFOV;
 };

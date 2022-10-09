@@ -14,7 +14,7 @@ FName UThirdPersonCameraComponent::SocketNameLeftShoulder(TEXT("TP_CameraTrace_L
 
 UThirdPersonCameraComponent::UThirdPersonCameraComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	bRightShoulder = true;
 	TargetCameraFOV = 90.0f;
@@ -29,10 +29,9 @@ void UThirdPersonCameraComponent::BeginPlay()
 	LoadCameraModel();
 }
 
-// Called every frame
-void UThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UThirdPersonCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::GetCameraView(DeltaTime, DesiredView);
 
 	check(Character && Character->GetMesh());
 
@@ -49,7 +48,7 @@ void UThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	// Use the Control Rotation and interpolate for smooth camera rotation.
 	FRotator CameraRotation = UGameplayStatics::GetPlayerCameraManager(Character, 0)->GetCameraRotation();
 	FRotator ControllerRotation = UGameplayStatics::GetPlayerController(Character, 0)->GetControlRotation();
-	TargetCameraRotation = UKismetMathLibrary::RInterpTo(CameraRotation, ControllerRotation, DeltaTime, CurrentCameraSettings.RotationLagSpeed);
+	FRotator TargetCameraRotation = UKismetMathLibrary::RInterpTo(CameraRotation, ControllerRotation, DeltaTime, CurrentCameraSettings.RotationLagSpeed);
 
 	// Step 3: Calculate the Smoothed Pivot Target (Orange Sphere).
 	// Get the 3P Pivot Target (Green Sphere) and interpolate using axis independent lag for maximum control.
@@ -68,7 +67,7 @@ void UThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	FVector CameraForwardVector = UKismetMathLibrary::GetForwardVector(TargetCameraRotation) * CurrentCameraSettings.CameraOffset.X;
 	FVector CameraRightVector = UKismetMathLibrary::GetRightVector(TargetCameraRotation) * CurrentCameraSettings.CameraOffset.Y;
 	FVector CameraUpVector = UKismetMathLibrary::GetUpVector(TargetCameraRotation) * CurrentCameraSettings.CameraOffset.Z;
-	TargetCameraLocation = PivotLocation + CameraForwardVector + CameraRightVector + CameraUpVector;
+	FVector TargetCameraLocation = PivotLocation + CameraForwardVector + CameraRightVector + CameraUpVector;
 	
 	// Step 6: Trace for an object between the camera and character to apply a corrective offset.
 	// Trace origins are set within the Character BP via the Camera Interface.
@@ -86,6 +85,11 @@ void UThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	}
 
 	// Step 8: Lerp First Person Override and return target camera parameters.
+
+	// Final result
+	DesiredView.Location = TargetCameraLocation;
+	DesiredView.Rotation = TargetCameraRotation;
+	DesiredView.FOV = TargetCameraFOV;
 }
 
 FTransform UThirdPersonCameraComponent::GetPivotTarget() const
