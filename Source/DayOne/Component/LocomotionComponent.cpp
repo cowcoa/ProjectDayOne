@@ -129,7 +129,7 @@ void ULocomotionComponent::SetMovementState(EMovementState NewMovementState)
 	
 	if (NewMovementState == MovementState) return;
 
-	static EMovementState PreviousMovementState = MovementState;
+	PrevMovementState = MovementState;
 
 	MovementState = NewMovementState;
 

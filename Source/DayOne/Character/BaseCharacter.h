@@ -35,6 +35,23 @@ public:
 	EGaitState GetGait() const;
 	EStanceState GetStance() const;
 
+	void GetEssentialValues(FVector& Velocity,
+		                    FVector& PhysicalAcceleration,
+		                    FVector& MovementInput,
+		                    bool& IsMoving,
+		                    bool& HasMovementInput,
+		                    float& Speed,
+		                    float& MovementInputAmount,
+		                    FRotator& AimingRotation,
+		                    float& AimYawRate) const;
+
+	void GetCurrentStates(EMovementState& MovementState,
+		                  EMovementState& PrevMovementState,
+		                  EMovementAction& MovementAction,
+		                  ERotationMode& RotationMode,
+		                  EGaitState& ActualGait,
+		                  EStanceState& ActualStance) const;
+
 protected:
 	//
 	// Inherited and override functions.

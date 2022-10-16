@@ -30,7 +30,7 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -158,4 +158,40 @@ EGaitState ABaseCharacter::GetGait() const
 EStanceState ABaseCharacter::GetStance() const
 {
 	return Locomotion->Stance;
+}
+
+void ABaseCharacter::GetEssentialValues(FVector& Velocity,
+	                                    FVector& PhysicalAcceleration,
+	                                    FVector& MovementInput,
+	                                    bool& IsMoving,
+	                                    bool& HasMovementInput,
+	                                    float& Speed,
+	                                    float& MovementInputAmount,
+	                                    FRotator& AimingRotation,
+	                                    float& AimYawRate) const
+{
+	Velocity = GetVelocity();
+	PhysicalAcceleration = Locomotion->PhysicalAcceleration;
+	MovementInput = Locomotion->GetCurrentAcceleration();
+	IsMoving = Locomotion->bIsMoving;
+	HasMovementInput = Locomotion->bHasMovementInput;
+	Speed = Locomotion->Speed;
+	MovementInputAmount = Locomotion->MovementInputAmount;
+	AimingRotation = GetControlRotation();
+	AimYawRate = Locomotion->AimYawRate;
+}
+
+void ABaseCharacter::GetCurrentStates(EMovementState& MovementState,
+	                                  EMovementState& PrevMovementState,
+	                                  EMovementAction& MovementAction,
+	                                  ERotationMode& RotationMode,
+	                                  EGaitState& ActualGait,
+	                                  EStanceState& ActualStance) const
+{
+	MovementState = Locomotion->MovementState;
+	PrevMovementState = Locomotion->PrevMovementState;
+	MovementAction = Locomotion->MovementAction;
+	RotationMode = Locomotion->RotationMode;
+	ActualGait = Locomotion->Gait;
+	ActualStance = Locomotion->Stance;
 }

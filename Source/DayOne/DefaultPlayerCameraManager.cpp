@@ -3,6 +3,8 @@
 
 #include "DefaultPlayerCameraManager.h"
 
+#include "Kismet/KismetMathLibrary.h"
+
 void ADefaultPlayerCameraManager::OnPossess(APawn* InPawn)
 {
 	ControlledPawn = InPawn;

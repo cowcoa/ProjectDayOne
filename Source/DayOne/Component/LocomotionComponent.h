@@ -131,6 +131,7 @@ private:
 	// Actual state variables
 	// Grounded or InAir(Falling)
 	EMovementState MovementState;
+	EMovementState PrevMovementState;
 	// Standing or Crouching
 	EStanceState Stance;
 	// Looking or Aiming

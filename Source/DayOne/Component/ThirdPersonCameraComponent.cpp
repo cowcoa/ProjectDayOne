@@ -25,6 +25,9 @@ void UThirdPersonCameraComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// I don't know why we need to set this style name, figure it out later.
+	// UGameplayStatics::GetPlayerCameraManager(Character, 0)->CameraStyle = FName(TEXT("ThirdPerson"));
+	
 	// Load camera config from data table.
 	LoadCameraModel();
 }
