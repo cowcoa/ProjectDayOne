@@ -128,6 +128,24 @@ protected:
 	void UpdateFootIK(float DeltaSeconds);
 
 	// Variables
+	// Layer Blending values
+	float EnableAimOffset;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float BasePoseN;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float BasePoseCLF;
+	float SpineAdd;
+	float HeadAdd;
+	float ArmLAdd;
+	float ArmRAdd;
+	float HandL;
+	float HandR;
+	float EnableHandIKL;
+	float EnableHandIKR;
+	float Arm_L_LS;
+	float Arm_R_LS;
+	float Arm_L_MS;
+	float Arm_R_MS;
 	// Aiming values
 	FRotator SmoothedAimingRotation;
 	FVector2d AimingAngle;
@@ -230,6 +248,7 @@ private:
 	// The curves are used to map the stride amount to the speed for maximum control.
 	float CalculateStrideBlend() const;
 	float GetAnimCurveClamped(FName Name, float Bias, float ClampMin, float ClampMax) const;
+	float GetAnimCurveCompact(FName Name) const;
 	// Calculate the Play Rate by dividing the Character's speed by the Animated Speed for each gait.
 	// The lerps are determined by the "Weight_Gait" anim curve that exists on every locomotion cycle
 	// so that the play rate is always in sync with the currently blended animation.

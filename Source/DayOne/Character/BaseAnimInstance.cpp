@@ -69,6 +69,11 @@ void UBaseAnimInstance::NativeInitializeAnimation()
 	MinAngleDelay = 0.75f;
 	MaxAngleDelay = 0.0f;
 	Turn180Threshold = 130.0f;
+	// Layer Blending
+	EnableAimOffset = 1.0f;
+	BasePoseN = 1.0f;
+	EnableHandIKL = 1.0f;
+	EnableHandIKR = 1.0f;
 }
 
 void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
@@ -192,6 +197,33 @@ void UBaseAnimInstance::UpdateAimingValues(float DeltaSeconds)
 
 void UBaseAnimInstance::UpdateLayerValues(float DeltaSeconds)
 {
+	// Get the Aim Offset weight by getting the opposite of the Aim Offset Mask.
+    EnableAimOffset = UKismetMathLibrary::Lerp(1.0f, 0.0f, GetAnimCurveCompact(FName("Mask_AimOffset")));
+
+	// Set the Base Pose weights
+	BasePoseN = GetAnimCurveCompact(FName("BasePose_N"));
+	BasePoseCLF = GetAnimCurveCompact(FName("BasePose_CLF"));
+
+	// Set the Additive amount weights for each body part
+	SpineAdd = GetAnimCurveCompact(FName("Layering_Spine_Add"));
+	HeadAdd = GetAnimCurveCompact(FName("Layering_Head_Add"));
+	ArmLAdd = GetAnimCurveCompact(FName("Layering_Arm_L_Add"));
+	ArmRAdd = GetAnimCurveCompact(FName("Layering_Arm_R_Add"));
+
+	// Set the Hand Override weights
+	HandR = GetAnimCurveCompact(FName("Layering_Hand_R"));
+	HandL = GetAnimCurveCompact(FName("Layering_Hand_L"));
+
+	// Blend and set the Hand IK weights to ensure they only are weighted if allowed by the Arm layers.
+	EnableHandIKL = UKismetMathLibrary::Lerp(0.0f, GetAnimCurveCompact(FName("Enable_HandIK_L")), GetAnimCurveCompact(FName("Layering_Arm_L")));
+	EnableHandIKR = UKismetMathLibrary::Lerp(0.0f, GetAnimCurveCompact(FName("Enable_HandIK_R")), GetAnimCurveCompact(FName("Layering_Arm_R")));
+
+	// Set whether the arms should blend in mesh space or local space.
+	// The Mesh space weight will always be 1 unless the Local Space (LS) curve is fully weighted.
+	Arm_L_LS = GetAnimCurveCompact(FName("Layering_Arm_L_LS"));
+	Arm_R_LS = GetAnimCurveCompact(FName("Layering_Arm_R_LS"));
+	Arm_L_MS = (float)(1 - FMath::FloorToInt(Arm_L_LS));
+	Arm_R_MS = (float)(1 - FMath::FloorToInt(Arm_R_LS));
 }
 
 void UBaseAnimInstance::UpdateFootIK(float DeltaSeconds)
@@ -306,8 +338,8 @@ float UBaseAnimInstance::CalculateStrideBlend() const
 	float WeightGait = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
 	float WalkRunLerp = UKismetMathLibrary::Lerp(StrideBlendNWalk->GetFloatValue(Proxy.Speed), StrideBlendNRun->GetFloatValue(Proxy.Speed), WeightGait);
 
-	float BasePoseCLF = GetCurveValue(FName("BasePose_CLF"));
-	float BlendResult = UKismetMathLibrary::Lerp(WalkRunLerp, StrideBlendCWalk->GetFloatValue(Proxy.Speed), BasePoseCLF);
+	float LocBasePoseCLF = GetCurveValue(FName("BasePose_CLF"));
+	float BlendResult = UKismetMathLibrary::Lerp(WalkRunLerp, StrideBlendCWalk->GetFloatValue(Proxy.Speed), LocBasePoseCLF);
 
 	return BlendResult;
 }
@@ -315,6 +347,11 @@ float UBaseAnimInstance::CalculateStrideBlend() const
 float UBaseAnimInstance::GetAnimCurveClamped(FName Name, float Bias, float ClampMin, float ClampMax) const
 {
 	return FMath::Clamp(GetCurveValue(Name) + Bias, ClampMin, ClampMax);
+}
+
+float UBaseAnimInstance::GetAnimCurveCompact(FName Name) const
+{
+	return GetCurveValue(Name);
 }
 
 float UBaseAnimInstance::CalculateStandingPlayRate() const
