@@ -24,6 +24,10 @@ void FBaseAnimInstanceProxy::PreUpdate(UAnimInstance* InAnimInstance, float Delt
 	FAnimInstanceProxy::PreUpdate(InAnimInstance, DeltaSeconds);
 
 	// UE_LOG(LogTemp, Warning, TEXT("FBaseAnimInstanceProxy::PreUpdate"));
+
+	// Test
+	BasePoseN = InAnimInstance->GetCurveValue(FName("BasePose_N"));
+	UE_LOG(LogTemp, Warning, TEXT("FBaseAnimInstanceProxy::PreUpdate.BasePoseN: %f"), BasePoseN);
 	
 	UpdateCharacterInfo();
 }
@@ -41,6 +45,8 @@ void FBaseAnimInstanceProxy::UpdateCharacterInfo()
 
 		Character->GetCurrentStates(MovementState, PrevMovementState, MovementAction,
 									RotationMode, Gait, Stance);
+
+
 	}
 }
 
@@ -74,15 +80,18 @@ void UBaseAnimInstance::NativeInitializeAnimation()
 	BasePoseN = 1.0f;
 	EnableHandIKL = 1.0f;
 	EnableHandIKR = 1.0f;
+	// In Air
+	LandPrediction = 1.0f;
 }
 
 void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
-	// Only update if character is valid
-	if (Proxy.Character == nullptr && DeltaSeconds != 0.0f) { return; }
-	
 	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
-
+	
+	// Only update if character is valid
+	if (DeltaSeconds == 0.0f) return;
+	if (Proxy.Character == nullptr) return;
+	
 	UpdateAimingValues(DeltaSeconds);
 	UpdateLayerValues(DeltaSeconds);
 	UpdateFootIK(DeltaSeconds);
@@ -201,8 +210,10 @@ void UBaseAnimInstance::UpdateLayerValues(float DeltaSeconds)
     EnableAimOffset = UKismetMathLibrary::Lerp(1.0f, 0.0f, GetAnimCurveCompact(FName("Mask_AimOffset")));
 
 	// Set the Base Pose weights
-	BasePoseN = GetAnimCurveCompact(FName("BasePose_N"));
+	// BasePoseN = GetAnimCurveCompact(FName("BasePose_N"));
+	BasePoseN = Proxy.BasePoseN;
 	BasePoseCLF = GetAnimCurveCompact(FName("BasePose_CLF"));
+	UE_LOG(LogTemp, Warning, TEXT("BasePoseN: %f"), BasePoseN);
 
 	// Set the Additive amount weights for each body part
 	SpineAdd = GetAnimCurveCompact(FName("Layering_Spine_Add"));
@@ -501,6 +512,7 @@ void UBaseAnimInstance::DynamicTransitionCheck()
 {
 }
 
+// TODO: 0 Finish Turn In Place
 void UBaseAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime, bool bOverrideCurrent)
 {
 	// Step 1: Set Turn Angle

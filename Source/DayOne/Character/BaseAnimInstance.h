@@ -51,6 +51,9 @@ struct FBaseAnimInstanceProxy : public FAnimInstanceProxy
 	ERotationMode RotationMode;
 	EGaitState Gait;
 	EStanceState Stance;
+
+	// Test cross thread
+	float BasePoseN;
 };
 
 USTRUCT()
@@ -128,11 +131,14 @@ protected:
 	void UpdateFootIK(float DeltaSeconds);
 
 	// Variables
+	// InAir values
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float LandPrediction;
 	// Layer Blending values
 	float EnableAimOffset;
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float BasePoseN;
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float BasePoseCLF;
 	float SpineAdd;
 	float HeadAdd;
@@ -173,6 +179,8 @@ protected:
 	float LYaw;
 	float RYaw;
 	float RotateRate;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float RotationScale;
 	// TurnInPlace values
 	float ElapsedDelayTime;
 	float TurnCheckMinAngle;
