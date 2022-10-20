@@ -51,9 +51,6 @@ struct FBaseAnimInstanceProxy : public FAnimInstanceProxy
 	ERotationMode RotationMode;
 	EGaitState Gait;
 	EStanceState Stance;
-
-	// Test cross thread
-	float BasePoseN;
 };
 
 USTRUCT()

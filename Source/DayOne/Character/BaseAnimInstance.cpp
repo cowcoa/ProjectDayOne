@@ -24,10 +24,6 @@ void FBaseAnimInstanceProxy::PreUpdate(UAnimInstance* InAnimInstance, float Delt
 	FAnimInstanceProxy::PreUpdate(InAnimInstance, DeltaSeconds);
 
 	// UE_LOG(LogTemp, Warning, TEXT("FBaseAnimInstanceProxy::PreUpdate"));
-
-	// Test
-	BasePoseN = InAnimInstance->GetCurveValue(FName("BasePose_N"));
-	UE_LOG(LogTemp, Warning, TEXT("FBaseAnimInstanceProxy::PreUpdate.BasePoseN: %f"), BasePoseN);
 	
 	UpdateCharacterInfo();
 }
@@ -210,10 +206,8 @@ void UBaseAnimInstance::UpdateLayerValues(float DeltaSeconds)
     EnableAimOffset = UKismetMathLibrary::Lerp(1.0f, 0.0f, GetAnimCurveCompact(FName("Mask_AimOffset")));
 
 	// Set the Base Pose weights
-	// BasePoseN = GetAnimCurveCompact(FName("BasePose_N"));
-	BasePoseN = Proxy.BasePoseN;
+	BasePoseN = GetAnimCurveCompact(FName("BasePose_N"));
 	BasePoseCLF = GetAnimCurveCompact(FName("BasePose_CLF"));
-	UE_LOG(LogTemp, Warning, TEXT("BasePoseN: %f"), BasePoseN);
 
 	// Set the Additive amount weights for each body part
 	SpineAdd = GetAnimCurveCompact(FName("Layering_Spine_Add"));

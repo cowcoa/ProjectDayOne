@@ -180,7 +180,7 @@ void UThirdPersonCameraComponent::UpdateCameraSettings(float DeltaTime)
 		switch (Character->GetGait())
 		{
 		case EGaitState::GS_Walking:
-			UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to Standing Walking"))
+			// UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to Standing Walking"))
 			CurrentCameraSettings.CameraOffset = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.CameraOffset,
 																				CameraData.Standing->Walking.CameraOffset,
 																				DeltaTime, 1.5f);
@@ -189,7 +189,7 @@ void UThirdPersonCameraComponent::UpdateCameraSettings(float DeltaTime)
 																				 DeltaTime, 1.5f);
 			break;
 		case EGaitState::GS_Running:
-			UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to Standing Running"))
+			// UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to Standing Running"))
 			CurrentCameraSettings.CameraOffset = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.CameraOffset,
 																				CameraData.Standing->Running.CameraOffset,
 																				DeltaTime, 2.0f);
@@ -198,7 +198,7 @@ void UThirdPersonCameraComponent::UpdateCameraSettings(float DeltaTime)
 																				 DeltaTime, 2.0f);
 			break;
 		case EGaitState::GS_Sprinting:
-			UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to Standing Sprinting"))
+			// UE_LOG(LogTemp, Warning, TEXT("Switch CameraSettings to Standing Sprinting"))
 			CurrentCameraSettings.CameraOffset = UKismetMathLibrary::VInterpTo(CurrentCameraSettings.CameraOffset,
 																			    CameraData.Standing->Sprinting.CameraOffset,
 																			    DeltaTime, 0.35f);
