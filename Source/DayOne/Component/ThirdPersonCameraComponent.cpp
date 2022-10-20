@@ -15,21 +15,25 @@ FName UThirdPersonCameraComponent::SocketNameLeftShoulder(TEXT("TP_CameraTrace_L
 UThirdPersonCameraComponent::UThirdPersonCameraComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 
 	bRightShoulder = true;
 	TargetCameraFOV = 90.0f;
+}
+
+void UThirdPersonCameraComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	// Load camera config from data table.
+	LoadCameraModel();
 }
 
 // Called when the game starts
 void UThirdPersonCameraComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// I don't know why we need to set this style name, figure it out later.
-	// UGameplayStatics::GetPlayerCameraManager(Character, 0)->CameraStyle = FName(TEXT("ThirdPerson"));
 	
-	// Load camera config from data table.
-	LoadCameraModel();
 }
 
 void UThirdPersonCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)

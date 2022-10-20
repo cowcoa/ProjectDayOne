@@ -22,7 +22,8 @@ public:
 	
 	friend class ABaseCharacter;
 	UThirdPersonCameraComponent();
-	
+
+	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 	virtual void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView) override;
 
