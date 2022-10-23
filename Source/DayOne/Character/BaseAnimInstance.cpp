@@ -71,6 +71,7 @@ void UBaseAnimInstance::NativeInitializeAnimation()
 	MinAngleDelay = 0.75f;
 	MaxAngleDelay = 0.0f;
 	Turn180Threshold = 130.0f;
+	StandingPlayRate = 1.0f;
 	// Layer Blending
 	EnableAimOffset = 1.0f;
 	BasePoseN = 1.0f;
@@ -340,13 +341,24 @@ float UBaseAnimInstance::CalculateStrideBlend() const
 {
 	check(StrideBlendNWalk && StrideBlendNRun && StrideBlendCWalk);
 
-	float WeightGait = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
-	float WalkRunLerp = UKismetMathLibrary::Lerp(StrideBlendNWalk->GetFloatValue(Proxy.Speed), StrideBlendNRun->GetFloatValue(Proxy.Speed), WeightGait);
+	// Get walk/run stride in current speed
+	float StandingWalkStride = StrideBlendNWalk->GetFloatValue(Proxy.Speed);
+	float StandingRunStride = StrideBlendNRun->GetFloatValue(Proxy.Speed);
+	// Get crouch stride in current speed
+	float CrouchingStride = StrideBlendCWalk->GetFloatValue(Proxy.Speed);
 
-	float LocBasePoseCLF = GetCurveValue(FName("BasePose_CLF"));
-	float BlendResult = UKismetMathLibrary::Lerp(WalkRunLerp, StrideBlendCWalk->GetFloatValue(Proxy.Speed), LocBasePoseCLF);
+	// Get walk/run's current weight
+	float WalkRunGaitWeight = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
+	// Blend walk/run stride based on gait weight
+	float WalkRunStrideBlend = UKismetMathLibrary::Lerp(StandingWalkStride, StandingRunStride, WalkRunGaitWeight);
 
-	return BlendResult;
+	// Get crouching weight
+	float CrouchingStanceWeight = GetCurveValue(FName("BasePose_CLF"));
+
+	// Blend blended-walkrun stride with crouch stride
+	float FinalStrideBlend = UKismetMathLibrary::Lerp(WalkRunStrideBlend, CrouchingStride, CrouchingStanceWeight);
+
+	return FinalStrideBlend;
 }
 
 float UBaseAnimInstance::GetAnimCurveClamped(FName Name, float Bias, float ClampMin, float ClampMax) const
@@ -361,15 +373,24 @@ float UBaseAnimInstance::GetAnimCurveCompact(FName Name) const
 
 float UBaseAnimInstance::CalculateStandingPlayRate() const
 {
-	float WeightGait = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
-	float WalkRunSpeedLerp = UKismetMathLibrary::Lerp(Proxy.Speed / AnimatedWalkSpeed, Proxy.Speed / AnimatedRunSpeed, WeightGait);
+	// Calculate current speed in different gait's animation speed rate.
+	float WalkSpeedRate = Proxy.Speed / AnimatedWalkSpeed;
+	float RunSpeedRate = Proxy.Speed / AnimatedRunSpeed;
+	float SprintSpeedRate = Proxy.Speed / AnimatedSprintSpeed;
 
-	float WeightGait2 = GetAnimCurveClamped(FName("Weight_Gait"), -2.0f, 0.0f, 1.0f);
-	float SprintSpeedLerp = UKismetMathLibrary::Lerp(WalkRunSpeedLerp, Proxy.Speed / AnimatedSprintSpeed, WeightGait2);
+	// Weight_Gait in Walk Anima == 1, Run Anim == 2, Sprint Anim == 3
+	float WalkRunGaitWeight = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
+	float WalkRunSpeedRate = UKismetMathLibrary::Lerp(WalkSpeedRate, RunSpeedRate, WalkRunGaitWeight);
+	float RunSprintGaitWeight = GetAnimCurveClamped(FName("Weight_Gait"), -2.0f, 0.0f, 1.0f);
+	float RunSprintSpeedRate = UKismetMathLibrary::Lerp(WalkRunSpeedRate, SprintSpeedRate, RunSprintGaitWeight);
 
-	float Result = FMath::Clamp((SprintSpeedLerp / StrideBlend) / GetOwningComponent()->GetComponentScale().Z, 0.0f, 3.0f);
+	// Keep sync with stride blend rate
+	float FinalSpeedRate = RunSprintSpeedRate / StrideBlend;
+	// scale the value by world z scale
+	FinalSpeedRate /= GetOwningComponent()->GetComponentScale().Z;
+	FinalSpeedRate = FMath::Clamp<float>(FinalSpeedRate, 0.0f, 3.0f);
 
-	return Result;
+	return FinalSpeedRate;
 }
 
 float UBaseAnimInstance::CalculateCrouchingPlayRate() const

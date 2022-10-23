@@ -53,14 +53,18 @@ struct FBaseAnimInstanceProxy : public FAnimInstanceProxy
 	EStanceState Stance;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType, meta=(ScriptName="VelocityBlend"))
 struct FVelocityBlend
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forward")
 	float F;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Backward")
 	float B;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Left")
 	float L;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Right")
 	float R;
 };
 
@@ -159,17 +163,23 @@ protected:
 	float RightYawTime;
 	float ForwardYawTime;
 	// Grounded values;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bShouldMove;
 	bool bRotateL;
 	bool bRotateR;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FVelocityBlend VelocityBlend;
 	float DiagonalScaleAmount;
 	FVector RelativeAccelerationAmount;
 	FLeanAmount LeanAmount;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float WalkRunBlend;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float StrideBlend;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float StandingPlayRate;
 	float CrouchingPlayRate;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	EMovementDirection MovementDirection;
 	float FYaw;
 	float BYaw;
@@ -198,7 +208,9 @@ protected:
 	float SmoothedAimingRotationInterpSpeed;
 	float VelocityBlendInterpSpeed;
 	float GroundedLeanInterpSpeed;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float AnimatedWalkSpeed;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float AnimatedRunSpeed;
 	float AnimatedSprintSpeed;
 	float AnimatedCrouchSpeed;
