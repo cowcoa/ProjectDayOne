@@ -88,7 +88,8 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 	// Only update if character is valid
 	if (DeltaSeconds == 0.0f) return;
 	if (Proxy.Character == nullptr) return;
-	
+
+	UpdateCharacterInfo(DeltaSeconds);
 	UpdateAimingValues(DeltaSeconds);
 	UpdateLayerValues(DeltaSeconds);
 	UpdateFootIK(DeltaSeconds);
@@ -163,6 +164,14 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 	{
 		
 	}
+}
+
+void UBaseAnimInstance::UpdateCharacterInfo(float DeltaSeconds)
+{
+	Gait = Proxy.Gait;
+	Speed = Proxy.Speed;
+
+	UE_LOG(LogTemp, Warning, TEXT("Anim Gait: %d, Anim Speed: %f"), Gait, Speed);
 }
 
 void UBaseAnimInstance::UpdateAimingValues(float DeltaSeconds)
@@ -244,7 +253,8 @@ bool UBaseAnimInstance::ShouldMoveCheck()
 void UBaseAnimInstance::UpdateMovementValues(float DeltaSeconds)
 {
 	// Interp and set the Velocity Blend.
-	VelocityBlend = InterpVelocityBlend(VelocityBlend, CalculateVelocityBlend(), VelocityBlendInterpSpeed, DeltaSeconds);
+	FVelocityBlend VelocityBlendTarget = CalculateVelocityBlend();
+	VelocityBlend = InterpVelocityBlend(VelocityBlend, VelocityBlendTarget, VelocityBlendInterpSpeed, DeltaSeconds);
 
 	// Set the Diagonal Scale Amount.
 	DiagonalScaleAmount = CalculateDiagonalScaleAmount();
@@ -267,11 +277,15 @@ void UBaseAnimInstance::UpdateMovementValues(float DeltaSeconds)
 
 FVelocityBlend UBaseAnimInstance::CalculateVelocityBlend() const
 {
-	FVector LocRelativeVelocityDir = Proxy.ActorRotation.UnrotateVector(Proxy.Velocity.GetSafeNormal(0.1f));
+	// Normalize character velocity and rotate it back to world forward direction.
+	FVector NormalizedVelocity = Proxy.Velocity.GetSafeNormal(0.1f);
+	FVector LocRelativeVelocityDir = Proxy.ActorRotation.UnrotateVector(NormalizedVelocity);
+
+	// Map diagonals vector from 1.0 to 0.5
 	float Sum = FMath::Abs(LocRelativeVelocityDir.X) + FMath::Abs(LocRelativeVelocityDir.Y) + FMath::Abs(LocRelativeVelocityDir.Z);
 	FVector RelativeDirection = LocRelativeVelocityDir / Sum;
 
-	// Make VelocityBlend
+	// Map to VelocityBlend
 	FVelocityBlend LocVelocityBlend;
 	LocVelocityBlend.F = FMath::Clamp(RelativeDirection.X, 0.0f, 1.0f);
 	LocVelocityBlend.B = FMath::Abs(FMath::Clamp(RelativeDirection.X, -1.0f, 0.0f));
@@ -349,6 +363,7 @@ float UBaseAnimInstance::CalculateStrideBlend() const
 
 	// Get walk/run's current weight
 	float WalkRunGaitWeight = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
+	UE_LOG(LogTemp, Warning, TEXT("WalkRunGaitWeight: %f"), WalkRunGaitWeight);
 	// Blend walk/run stride based on gait weight
 	float WalkRunStrideBlend = UKismetMathLibrary::Lerp(StandingWalkStride, StandingRunStride, WalkRunGaitWeight);
 
@@ -424,7 +439,7 @@ EMovementDirection UBaseAnimInstance::CalculateMovementDirection() const
 	}
 	// Gait == Walking or Running
 	// RotationMode == Looking or Aiming
-	float Angle = UKismetMathLibrary::NormalizedDeltaRotator(Proxy.Velocity.ToOrientationRotator(), Proxy.AimingRotation).Yaw;
+	float Angle = UKismetMathLibrary::NormalizedDeltaRotator(UKismetMathLibrary::MakeRotFromX(Proxy.Velocity), Proxy.AimingRotation).Yaw;
 	return CalculateQuadrant(MovementDirection, 70.0f, -70.0f, 110.0f, -110.0f, 5.0f, Angle);
 }
 
@@ -433,29 +448,32 @@ EMovementDirection UBaseAnimInstance::CalculateQuadrant(EMovementDirection Curre
 	                                                    float BRThreshold, float BLThreshold,
 	                                                    float Buffer, float Angle) const
 {
-	if (AngleInRange(Angle, FLThreshold, FRThreshold, Buffer,
-		Current != EMovementDirection::MD_Forward || Current != EMovementDirection::MD_Backward))
+	// Calculate forward direction
+	bool IncreaseBuffer = Current != EMovementDirection::MD_Forward || Current != EMovementDirection::MD_Backward;
+	if (AngleInRange(Angle, FLThreshold, FRThreshold, Buffer, IncreaseBuffer))
 	{
 		return EMovementDirection::MD_Forward;
 	}
-	else if (AngleInRange(Angle, FRThreshold, BRThreshold, Buffer,
-		Current != EMovementDirection::MD_Right || Current != EMovementDirection::MD_Left))
+
+	// Calculate right direction
+	IncreaseBuffer = Current != EMovementDirection::MD_Right || Current != EMovementDirection::MD_Left;
+	if (AngleInRange(Angle, FRThreshold, BRThreshold, Buffer, IncreaseBuffer))
 	{
 		return EMovementDirection::MD_Right;
 	}
-	else if (AngleInRange(Angle, BLThreshold, FLThreshold, Buffer,
-		Current != EMovementDirection::MD_Right || Current != EMovementDirection::MD_Left))
+
+	// Calculate left direction
+	if (AngleInRange(Angle, BLThreshold, FLThreshold, Buffer, IncreaseBuffer))
 	{
 		return EMovementDirection::MD_Left;
 	}
-	else
-	{
-		return EMovementDirection::MD_Backward;
-	}
+	
+	return EMovementDirection::MD_Backward;
 }
 
-bool UBaseAnimInstance::AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer,
-	bool bIncreaseBuffer) const
+bool UBaseAnimInstance::AngleInRange(float Angle,
+								     float MinAngle, float MaxAngle,
+								     float Buffer, bool bIncreaseBuffer) const
 {
 	if (bIncreaseBuffer)
 	{

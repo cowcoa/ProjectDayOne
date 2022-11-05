@@ -127,11 +127,17 @@ protected:
 	virtual void DestroyAnimInstanceProxy(FAnimInstanceProxy* InProxy) override {}
 
 	// Update functions
+	void UpdateCharacterInfo(float DeltaSeconds);
 	void UpdateAimingValues(float DeltaSeconds);
 	void UpdateLayerValues(float DeltaSeconds);
 	void UpdateFootIK(float DeltaSeconds);
 
 	// Variables
+	// Character Info
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	EGaitState Gait;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float Speed;
 	// InAir values
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	float LandPrediction;
