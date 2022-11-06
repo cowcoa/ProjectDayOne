@@ -35,14 +35,17 @@ struct FBaseAnimInstanceProxy : public FAnimInstanceProxy
 	FVector PhysicalAcceleration;
 	FVector MovementInput;
 	bool bIsMoving;
+	bool bIsMovingOnGround;
 	bool bHasMovementInput;
 	float Speed;
 	float MovementInputAmount;
 	FRotator AimingRotation;
 	float AimYawRate;
 	FRotator ActorRotation;
+	FRotator LastUpdateRotation;
 	float MaxMovementInput;
 	float MaxBrakingDeceleration;
+	bool bIsWalkable;
 
 	// Current State variables
 	EMovementState MovementState;
@@ -133,6 +136,32 @@ protected:
 	void UpdateFootIK(float DeltaSeconds);
 
 	// Variables
+	// Foot IK
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float FootLockLAlpha;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FVector FootLockLLocation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FRotator FootLockLRotation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float FootLockRAlpha;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FVector FootLockRLocation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FRotator FootLockRRotation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FVector FootOffsetLLocation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FRotator FootOffsetLRotation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FVector FootOffsetRLocation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FRotator FootOffsetRRotation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float PelvisAlpha;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FVector PelvisOffset;
+	
 	// Character Info
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	EGaitState Gait;
@@ -220,6 +249,9 @@ protected:
 	float AnimatedRunSpeed;
 	float AnimatedSprintSpeed;
 	float AnimatedCrouchSpeed;
+	float IKTraceDistanceAboveFoot;
+	float IKTraceDistanceBelowFoot;
+	float FootHeight;
 	// Blend Curves
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UCurveFloat* DiagonalScaleAmountCurve;
@@ -321,4 +353,14 @@ private:
 	void DynamicTransitionCheck();
 
 	void TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime, bool bOverrideCurrent);
+
+	// Update IK helper functions
+	// Foot Lock
+	void SetFootLocking(FName EnableFootIKCurve, FName FootLockCurve, FName IKFootBone,
+		                float& CurrentFootLockAlpha, FVector& CurrentFootLockLocation, FRotator& CurrentFootLockRotation, float DeltaSeconds);
+	void SetFootLockOffsets(FVector& LocalLocation, FRotator& LocalRotation, float DeltaSeconds);
+	// Offsets
+	void SetFootOffsets(FName EnableFootIKCurve, FName IKFootBone, FName RootBone,
+					FVector& CurrentLocationTarget, FVector& CurrentLocationOffset, FRotator& CurrentRotationOffset, float DeltaSeconds);
+	void SetPelvisIKOffset(FVector FootOffsetLTarget, FVector FootOffsetRTarget, float DeltaSeconds);
 };
