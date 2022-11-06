@@ -254,8 +254,8 @@ void UBaseAnimInstance::UpdateFootIK(float DeltaSeconds)
 	// Locking right foot
 	SetFootLocking("Enable_FootIK_R", "FootLock_R", "ik_foot_r", FootLockRAlpha, FootLockRLocation, FootLockRRotation, DeltaSeconds);
 	
-	FVector FootOffsetLTarget;
-	FVector FootOffsetRTarget;
+	FVector FootOffsetLTarget = FVector::ZeroVector;
+	FVector FootOffsetRTarget = FVector::ZeroVector;
 	if (Proxy.MovementState == EMovementState::MS_None || Proxy.MovementState == EMovementState::MS_Grounded)
 	{
 		// Calculate left foot offset
@@ -693,11 +693,6 @@ void UBaseAnimInstance::SetFootOffsets(FName EnableFootIKCurve, FName IKFootBone
 			
 			TargetRotationOffset = FRotator(ImpactNormalPitch,0.0f,ImpactNormalRoll);
 		}
-		else
-		{
-			CurrentLocationOffset = FVector::ZeroVector;
-			CurrentRotationOffset = FRotator::ZeroRotator;
-		}
 
 		// Step 2: Interp the Current Location Offset to the new target value.
 		// Interpolate at different speeds based on whether the new target is above or below the current one.
@@ -731,7 +726,6 @@ void UBaseAnimInstance::SetPelvisIKOffset(FVector FootOffsetLTarget, FVector Foo
 
 	// Step 1: Set the new Pelvis Target to be the lowest Foot Offset
 	FVector PelvisTarget = FootOffsetLTarget.Z < FootOffsetRTarget.Z ? FootOffsetLTarget : FootOffsetRTarget;
-
 	// Step 2: Interp the Current Pelvis Offset to the new target value.
 	// Interpolate at different speeds based on whether the new target is above or below the current one.
 	float InterpSpeed = 15.0f;
