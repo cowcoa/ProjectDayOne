@@ -176,8 +176,6 @@ void UBaseAnimInstance::UpdateCharacterInfo(float DeltaSeconds)
 {
 	Gait = Proxy.Gait;
 	Speed = Proxy.Speed;
-
-	UE_LOG(LogTemp, Warning, TEXT("Anim Gait: %d, Anim Speed: %f"), Gait, Speed);
 }
 
 void UBaseAnimInstance::UpdateAimingValues(float DeltaSeconds)
@@ -385,7 +383,7 @@ float UBaseAnimInstance::CalculateStrideBlend() const
 
 	// Get walk/run's current weight
 	float WalkRunGaitWeight = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
-	UE_LOG(LogTemp, Warning, TEXT("WalkRunGaitWeight: %f"), WalkRunGaitWeight);
+	
 	// Blend walk/run stride based on gait weight
 	float WalkRunStrideBlend = UKismetMathLibrary::Lerp(StandingWalkStride, StandingRunStride, WalkRunGaitWeight);
 
@@ -602,12 +600,16 @@ void UBaseAnimInstance::SetFootLocking(FName EnableFootIKCurve, FName FootLockCu
 	// Step 1: Set Local FootLock Curve value
 	float FootLockCurveValue = GetCurveValue(FootLockCurve);
 
+	UE_LOG(LogTemp, Warning, TEXT("%s FootLockCurveValue: %f"), *FootLockCurve.ToString(), FootLockCurveValue);
+	UE_LOG(LogTemp, Warning, TEXT("%s CurrentFootLockAlpha: %f"), *FootLockCurve.ToString(), CurrentFootLockAlpha);
+
 	// Step 2: Only update the FootLock Alpha if the new value is less than the current,
 	// or it equals 1. This makes it so that the foot can only blend out of the locked position
 	// or lock to a new position, and never blend in.
 	if (FootLockCurveValue >= 0.99f || FootLockCurveValue < CurrentFootLockAlpha)
 	{
 		CurrentFootLockAlpha = FootLockCurveValue;
+		UE_LOG(LogTemp, Warning, TEXT("%s New CurrentFootLockAlpha: %f"), *FootLockCurve.ToString(), CurrentFootLockAlpha);
 	}
 
 	// Step 3: If the Foot Lock curve equals 1,

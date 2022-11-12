@@ -45,6 +45,8 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAxis(MoveRightInputName, this, &ThisClass::OnMoveRight);
 	PlayerInputComponent->BindAxis(LookupInputName, this, &ThisClass::OnLookUp);
 	PlayerInputComponent->BindAxis(TurnInputName, this, &ThisClass::OnTurn);
+
+	PlayerInputComponent->BindAction(StanceInputName, EInputEvent::IE_Pressed, this, &ThisClass::OnStance);
 }
 
 void ABaseCharacter::PostInitializeComponents()
@@ -67,6 +69,18 @@ void ABaseCharacter::Tick(float DeltaTime)
 
 }
 
+void ABaseCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	Locomotion->SetStance(EStanceState::SS_Crouching);
+}
+
+void ABaseCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	Locomotion->SetStance(EStanceState::SS_Standing);
+}
+
 void ABaseCharacter::OnMoveForward(float Value)
 {
 	ProcessPlayerMovementInput(true);
@@ -85,6 +99,26 @@ void ABaseCharacter::OnLookUp(float Value)
 void ABaseCharacter::OnTurn(float Value)
 {
 	AddControllerYawInput(Value * TurnRate);
+}
+
+void ABaseCharacter::OnStance()
+{
+	if (Locomotion->MovementAction != EMovementAction::MA_None) return;
+	
+	// We don't handle the 'break fall' situation of crouching in air.
+	if (Locomotion->MovementState == EMovementState::MS_Grounded)
+	{
+		if (Locomotion->Stance == EStanceState::SS_Standing)
+		{
+			Locomotion->DesiredStance = EStanceState::SS_Crouching;
+			Crouch();
+		}
+		else // Locomotion->Stance == EStanceState::SS_Crouching
+		{
+			Locomotion->DesiredStance = EStanceState::SS_Standing;
+			UnCrouch();
+		}
+	}
 }
 
 /*

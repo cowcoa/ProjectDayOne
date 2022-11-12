@@ -60,6 +60,8 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PostInitializeComponents() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
 	//
 	// Input callback functions.
@@ -68,6 +70,7 @@ protected:
 	void OnMoveRight(float Value);
 	void OnLookUp(float Value);
 	void OnTurn(float Value);
+	void OnStance();
 	
 	//
 	// Utility functions.

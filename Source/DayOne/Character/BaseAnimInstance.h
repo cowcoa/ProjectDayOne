@@ -213,6 +213,7 @@ protected:
 	float StrideBlend;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float StandingPlayRate;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float CrouchingPlayRate;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	EMovementDirection MovementDirection;
@@ -273,9 +274,8 @@ private:
 
 	void UpdateMovementValues(float DeltaSeconds);
 	// Calculate the Velocity Blend.
-	// This value represents the velocity amount of the actor in each direction
-	// (normalized so that diagonals equal .5 for each direction),
-	// and is used in a BlendMulti node to produce better directional blending than a standard blendspace.
+	// This value represents the velocity amount of the actor in each direction (normalized so that diagonals equal .5 for each direction),
+	// and is used in a BlendMulti node to produce better directional blending than a standard BlendSpace.
 	FVelocityBlend CalculateVelocityBlend() const;
 	FVelocityBlend InterpVelocityBlend(FVelocityBlend Current, FVelocityBlend Target, float InterpSpeed, float DeltaTime) const;
 	// Calculate the Diagnal Scale Amount.

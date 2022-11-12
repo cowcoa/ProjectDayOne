@@ -25,8 +25,6 @@ public:
 
 	virtual void Crouch(bool bClientSimulation = false) override;
 	virtual void UnCrouch(bool bClientSimulation = false) override;
-
-	int test = 10;
 	
 protected:
 	// Reference variables.
@@ -134,6 +132,7 @@ private:
 	EMovementState PrevMovementState;
 	// Standing or Crouching
 	EStanceState Stance;
+	EStanceState DesiredStance;
 	// Looking or Aiming
 	ERotationMode RotationMode;
 	// Walking, Running or Sprinting

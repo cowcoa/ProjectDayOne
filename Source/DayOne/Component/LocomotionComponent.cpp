@@ -18,6 +18,7 @@ ULocomotionComponent::ULocomotionComponent(const FObjectInitializer& ObjectIniti
 	MovementAction = EMovementAction::MA_None;
 	MovementState = EMovementState::MS_Grounded;
 	Stance = EStanceState::SS_Standing;
+	DesiredStance = EStanceState::SS_Standing;
 	RotationMode = ERotationMode::RM_Looking;
 	Gait = EGaitState::GS_Walking;
 }
