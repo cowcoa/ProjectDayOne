@@ -202,6 +202,8 @@ protected:
 	// Grounded values;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bShouldMove;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bIsMoving;
 	bool bRotateL;
 	bool bRotateR;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)

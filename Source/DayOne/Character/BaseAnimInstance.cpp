@@ -5,6 +5,7 @@
 
 #include "Curves/CurveVector.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetStringLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 void FBaseAnimInstanceProxy::InitializeObjects(UAnimInstance* InAnimInstance)
@@ -177,6 +178,8 @@ void UBaseAnimInstance::UpdateCharacterInfo(float DeltaSeconds)
 	Gait = Proxy.Gait;
 	Stance = Proxy.Stance;
 	Speed = Proxy.Speed;
+
+	bIsMoving = Proxy.bIsMoving;
 }
 
 void UBaseAnimInstance::UpdateAimingValues(float DeltaSeconds)
@@ -268,6 +271,7 @@ void UBaseAnimInstance::UpdateFootIK(float DeltaSeconds)
 
 bool UBaseAnimInstance::ShouldMoveCheck()
 {
+	// UE_LOG(LogTemp, Warning, TEXT("IsMoving: %s, HasMovementInput: %s, Speed: %f"), *UKismetStringLibrary::Conv_BoolToString(Proxy.bIsMoving), *UKismetStringLibrary::Conv_BoolToString(Proxy.bHasMovementInput), Proxy.Speed);
 	return ((Proxy.bIsMoving && Proxy.bHasMovementInput) || Proxy.Speed > 150.0f);
 }
 
