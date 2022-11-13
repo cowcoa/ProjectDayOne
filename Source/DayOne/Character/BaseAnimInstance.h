@@ -166,6 +166,8 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	EGaitState Gait;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	EStanceState Stance;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	float Speed;
 	// InAir values
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)

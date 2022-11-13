@@ -175,6 +175,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 void UBaseAnimInstance::UpdateCharacterInfo(float DeltaSeconds)
 {
 	Gait = Proxy.Gait;
+	Stance = Proxy.Stance;
 	Speed = Proxy.Speed;
 }
 
@@ -600,8 +601,8 @@ void UBaseAnimInstance::SetFootLocking(FName EnableFootIKCurve, FName FootLockCu
 	// Step 1: Set Local FootLock Curve value
 	float FootLockCurveValue = GetCurveValue(FootLockCurve);
 
-	UE_LOG(LogTemp, Warning, TEXT("%s FootLockCurveValue: %f"), *FootLockCurve.ToString(), FootLockCurveValue);
-	UE_LOG(LogTemp, Warning, TEXT("%s CurrentFootLockAlpha: %f"), *FootLockCurve.ToString(), CurrentFootLockAlpha);
+	//UE_LOG(LogTemp, Warning, TEXT("%s FootLockCurveValue: %f"), *FootLockCurve.ToString(), FootLockCurveValue);
+	//UE_LOG(LogTemp, Warning, TEXT("%s CurrentFootLockAlpha: %f"), *FootLockCurve.ToString(), CurrentFootLockAlpha);
 
 	// Step 2: Only update the FootLock Alpha if the new value is less than the current,
 	// or it equals 1. This makes it so that the foot can only blend out of the locked position
@@ -609,7 +610,7 @@ void UBaseAnimInstance::SetFootLocking(FName EnableFootIKCurve, FName FootLockCu
 	if (FootLockCurveValue >= 0.99f || FootLockCurveValue < CurrentFootLockAlpha)
 	{
 		CurrentFootLockAlpha = FootLockCurveValue;
-		UE_LOG(LogTemp, Warning, TEXT("%s New CurrentFootLockAlpha: %f"), *FootLockCurve.ToString(), CurrentFootLockAlpha);
+		//UE_LOG(LogTemp, Warning, TEXT("%s New CurrentFootLockAlpha: %f"), *FootLockCurve.ToString(), CurrentFootLockAlpha);
 	}
 
 	// Step 3: If the Foot Lock curve equals 1,
