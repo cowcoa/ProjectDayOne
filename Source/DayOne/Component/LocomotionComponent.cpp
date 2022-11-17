@@ -62,8 +62,8 @@ void ULocomotionComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 			UpdateGroudedRotation();
 			break;
 		case EMovementState::MS_InAir:
-			// TODO
-			checkNoEntry();
+			// Do while In Air
+			UpdateInAirRotation();
 			break;
 		default:
 			checkNoEntry();
@@ -391,6 +391,23 @@ float ULocomotionComponent::GetMappedSpeed() const
 	else
 	{
 		return MappedWalkSpeed;
+	}
+}
+
+void ULocomotionComponent::UpdateInAirRotation()
+{
+	if (RotationMode == ERotationMode::RM_Looking || RotationMode == ERotationMode::RM_Velocity)
+	{
+		// Velocity / Looking Direction Rotation
+		FRotator TargetAirRotation(0.0f, InAirRotation.Yaw, 0.0f);
+		SmoothCharacterRotation(TargetAirRotation, 0.0f, 5.0f);
+	}
+	else if (RotationMode == ERotationMode::RM_Aiming)
+	{
+		// Aiming Rotation
+		FRotator TargetAirRotation(0.0f, Character->GetControlRotation().Yaw, 0.0f);
+		SmoothCharacterRotation(TargetAirRotation, 0.0f, 15.0f);
+		InAirRotation = Character->GetActorRotation();
 	}
 }
 

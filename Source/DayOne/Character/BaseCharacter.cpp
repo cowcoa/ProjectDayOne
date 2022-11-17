@@ -71,12 +71,14 @@ void ABaseCharacter::Tick(float DeltaTime)
 
 void ABaseCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
+	UE_LOG(LogTemp,Warning,TEXT("OnStartCrouch"))
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 	Locomotion->SetStance(EStanceState::SS_Crouching);
 }
 
 void ABaseCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
+	UE_LOG(LogTemp,Warning,TEXT("OnEndCrouch"))
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 	Locomotion->SetStance(EStanceState::SS_Standing);
 }

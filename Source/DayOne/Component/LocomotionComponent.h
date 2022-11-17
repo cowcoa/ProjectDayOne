@@ -72,6 +72,9 @@ protected:
 	// This allows you to vary the movement speeds but still use the mapped range in calculations for consistent results.
 	float GetMappedSpeed() const;
 
+	// Do while In Air
+	void UpdateInAirRotation();
+
 	// Must pay more attention to this method, this may auto rotate character
 	void UpdateGroudedRotation();
 	// Rotate character while moving??
