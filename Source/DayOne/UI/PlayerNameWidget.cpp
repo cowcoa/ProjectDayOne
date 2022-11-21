@@ -50,8 +50,10 @@ void UPlayerNameWidget::ShowPlayerNetRole(APawn* InPawn)
 	}
 }
 
+/*
 void UPlayerNameWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 {
 	RemoveFromParent();
 	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
 }
+*/

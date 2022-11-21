@@ -19,7 +19,7 @@ class DAYONE_API UCharacterNameWidget : public UUserWidget
 	class UTextBlock* CharacterName;
 	
 protected:
-	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
+	// virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
 
 public:
 	UFUNCTION(BlueprintCallable)

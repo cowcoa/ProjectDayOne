@@ -3,11 +3,13 @@
 
 #include "CharacterNameWidget.h"
 
+/*
 void UCharacterNameWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 {
 	RemoveFromParent();
 	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
 }
+*/
 
 void UCharacterNameWidget::SetDisplayText(FString Text)
 {

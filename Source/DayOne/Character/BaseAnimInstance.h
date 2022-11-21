@@ -16,6 +16,9 @@ struct FBaseAnimInstanceProxy : public FAnimInstanceProxy
 {
 	GENERATED_BODY()
 
+	FBaseAnimInstanceProxy();
+	FBaseAnimInstanceProxy(UAnimInstance* Instance);
+
 	virtual void InitializeObjects(UAnimInstance* InAnimInstance) override;
 	virtual void PreUpdate(UAnimInstance* InAnimInstance, float DeltaSeconds) override;
 	// virtual void Update(float DeltaSeconds) override;
@@ -46,6 +49,12 @@ struct FBaseAnimInstanceProxy : public FAnimInstanceProxy
 	float MaxMovementInput;
 	float MaxBrakingDeceleration;
 	bool bIsWalkable;
+
+	// Character capsule info.
+	// Capsule's world location;
+	FVector CapsuleLocation;
+	float CapsuleRadius;
+	float CapsuleHalfHeight;
 
 	// Current State variables
 	EMovementState MovementState;
@@ -123,11 +132,18 @@ public:
 	friend struct FBaseAnimInstanceProxy;
 
 protected:
-	UPROPERTY(Transient)
-	FBaseAnimInstanceProxy Proxy;
-
-	virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override { return &Proxy; }
-	virtual void DestroyAnimInstanceProxy(FAnimInstanceProxy* InProxy) override {}
+	FBaseAnimInstanceProxy* Proxy;
+	
+	virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override
+	{
+		Proxy = new FBaseAnimInstanceProxy(this);
+		return Proxy;
+	}
+	virtual void DestroyAnimInstanceProxy(FAnimInstanceProxy* InProxy) override
+	{
+		check(InProxy == Proxy);
+		delete InProxy;
+	}
 
 	// Update functions
 	void UpdateCharacterInfo(float DeltaSeconds);
@@ -168,10 +184,16 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	EStanceState Stance;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	EMovementState MovementState;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	float Speed;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	bool bHasMovementInput;
 	// InAir values
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	float LandPrediction;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	float FallSpeed;
 	// Layer Blending values
 	float EnableAimOffset;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -270,7 +292,9 @@ protected:
 	class UCurveVector* YawOffsetFB;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UCurveVector* YawOffsetLR;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UCurveFloat* LandPredictionCurve;
+	
 private:
 	// Enable Movement Animations if IsMoving and HasMovementInput,
 	// or if the Speed is greater than 150. 
@@ -367,4 +391,11 @@ private:
 	void SetFootOffsets(FName EnableFootIKCurve, FName IKFootBone, FName RootBone,
 					FVector& CurrentLocationTarget, FVector& CurrentLocationOffset, FRotator& CurrentRotationOffset, float DeltaSeconds);
 	void SetPelvisIKOffset(FVector FootOffsetLTarget, FVector FootOffsetRTarget, float DeltaSeconds);
+
+	// In Air
+	void UpdateInAirValues();
+	// Calculate the land prediction weight by tracing in the velocity direction to find a walkable surface the character is falling toward,
+	// and getting the 'Time' (range of 0-1, 1 being maximum, 0 being about to land) till impact.
+	// The Land Prediction Curve is used to control how the time affects the final weight for a smooth blend.
+	float CalculateLandPrediction();
 };

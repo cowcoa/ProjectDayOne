@@ -3,10 +3,21 @@
 
 #include "BaseAnimInstance.h"
 
+#include "Components/CapsuleComponent.h"
 #include "Curves/CurveVector.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+
+FBaseAnimInstanceProxy::FBaseAnimInstanceProxy()
+	: Super()
+{
+}
+
+FBaseAnimInstanceProxy::FBaseAnimInstanceProxy(UAnimInstance* Instance)
+	: Super(Instance)
+{
+}
 
 void FBaseAnimInstanceProxy::InitializeObjects(UAnimInstance* InAnimInstance)
 {
@@ -46,6 +57,9 @@ void FBaseAnimInstanceProxy::UpdateCharacterInfo()
 
 		bIsMovingOnGround = MovementComponent->IsMovingOnGround();
 		LastUpdateRotation = MovementComponent->GetLastUpdateRotation();
+
+		CapsuleLocation = Character->GetCapsuleComponent()->GetComponentLocation();
+		Character->GetCapsuleComponent()->GetScaledCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 	}
 }
 
@@ -94,7 +108,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 	
 	// Only update if character is valid
 	if (DeltaSeconds == 0.0f) return;
-	if (Proxy.Character == nullptr) return;
+	if (Proxy->Character == nullptr) return;
 
 	UpdateCharacterInfo(DeltaSeconds);
 	UpdateAimingValues(DeltaSeconds);
@@ -102,7 +116,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 	UpdateFootIK(DeltaSeconds);
 
 	// Check Movement Mode
-	if (Proxy.MovementState == EMovementState::MS_Grounded)
+	if (Proxy->MovementState == EMovementState::MS_Grounded)
 	{
 		// Check If Moving Or Not
 		bShouldMove = ShouldMoveCheck();
@@ -167,19 +181,22 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 		}
 		
 	}
-	else if (Proxy.MovementState == EMovementState::MS_InAir)
+	else if (Proxy->MovementState == EMovementState::MS_InAir)
 	{
-		
+		// Do While InAir
+		UpdateInAirValues();
 	}
 }
 
 void UBaseAnimInstance::UpdateCharacterInfo(float DeltaSeconds)
 {
-	Gait = Proxy.Gait;
-	Stance = Proxy.Stance;
-	Speed = Proxy.Speed;
+	Gait = Proxy->Gait;
+	Stance = Proxy->Stance;
+	MovementState = Proxy->MovementState;
+	Speed = Proxy->Speed;
+	bHasMovementInput = Proxy->bHasMovementInput;
 
-	bIsMoving = Proxy.bIsMoving;
+	bIsMoving = Proxy->bIsMoving;
 }
 
 void UBaseAnimInstance::UpdateAimingValues(float DeltaSeconds)
@@ -187,17 +204,17 @@ void UBaseAnimInstance::UpdateAimingValues(float DeltaSeconds)
 	// Interp the Aiming Rotation value to achieve smooth aiming rotation changes.
 	// Interpolating the rotation before calculating the angle ensures the value is not affected by changes in actor rotation,
 	// allowing slow aiming rotation changes with fast actor rotation changes.
-	SmoothedAimingRotation = UKismetMathLibrary::RInterpTo(SmoothedAimingRotation, Proxy.AimingRotation, DeltaSeconds, SmoothedAimingRotationInterpSpeed);
+	SmoothedAimingRotation = UKismetMathLibrary::RInterpTo(SmoothedAimingRotation, Proxy->AimingRotation, DeltaSeconds, SmoothedAimingRotationInterpSpeed);
 
 	// Calculate the Aiming angle and Smoothed Aiming Angle by getting the delta between
 	// the aiming rotation and the actor rotation.
-	FRotator DeltaAimingRotation = UKismetMathLibrary::NormalizedDeltaRotator(Proxy.AimingRotation, Proxy.ActorRotation);
+	FRotator DeltaAimingRotation = UKismetMathLibrary::NormalizedDeltaRotator(Proxy->AimingRotation, Proxy->ActorRotation);
 	AimingAngle = UKismetMathLibrary::MakeVector2D(DeltaAimingRotation.Yaw, DeltaAimingRotation.Pitch);
-	FRotator DeltaSmoothedAimingRotation = UKismetMathLibrary::NormalizedDeltaRotator(SmoothedAimingRotation, Proxy.ActorRotation);
+	FRotator DeltaSmoothedAimingRotation = UKismetMathLibrary::NormalizedDeltaRotator(SmoothedAimingRotation, Proxy->ActorRotation);
 	SmoothedAimingAngle = UKismetMathLibrary::MakeVector2D(DeltaSmoothedAimingRotation.Yaw, DeltaSmoothedAimingRotation.Pitch);
 
 	// Clamp the Aiming Pitch Angle to a range of 1 to 0 for use in the vertical aim sweeps.
-	if (Proxy.RotationMode == ERotationMode::RM_Looking || Proxy.RotationMode == ERotationMode::RM_Aiming)
+	if (Proxy->RotationMode == ERotationMode::RM_Looking || Proxy->RotationMode == ERotationMode::RM_Aiming)
 	{
 		AimSweepTime = UKismetMathLibrary::MapRangeClamped(AimingAngle.Y, -90.0f, 90.0f, 1.0f, 0.0f);
 		// Use the Aiming Yaw Angle divided by the number of spine+pelvis bones to
@@ -258,7 +275,7 @@ void UBaseAnimInstance::UpdateFootIK(float DeltaSeconds)
 	
 	FVector FootOffsetLTarget = FVector::ZeroVector;
 	FVector FootOffsetRTarget = FVector::ZeroVector;
-	if (Proxy.MovementState == EMovementState::MS_None || Proxy.MovementState == EMovementState::MS_Grounded)
+	if (Proxy->MovementState == EMovementState::MS_None || Proxy->MovementState == EMovementState::MS_Grounded)
 	{
 		// Calculate left foot offset
 		SetFootOffsets("Enable_FootIK_L", "ik_foot_l", "root", FootOffsetLTarget, FootOffsetLLocation, FootOffsetLRotation, DeltaSeconds);
@@ -272,7 +289,7 @@ void UBaseAnimInstance::UpdateFootIK(float DeltaSeconds)
 bool UBaseAnimInstance::ShouldMoveCheck()
 {
 	// UE_LOG(LogTemp, Warning, TEXT("IsMoving: %s, HasMovementInput: %s, Speed: %f"), *UKismetStringLibrary::Conv_BoolToString(Proxy.bIsMoving), *UKismetStringLibrary::Conv_BoolToString(Proxy.bHasMovementInput), Proxy.Speed);
-	return ((Proxy.bIsMoving && Proxy.bHasMovementInput) || Proxy.Speed > 150.0f);
+	return ((Proxy->bIsMoving && Proxy->bHasMovementInput) || Proxy->Speed > 150.0f);
 }
 
 void UBaseAnimInstance::UpdateMovementValues(float DeltaSeconds)
@@ -303,8 +320,8 @@ void UBaseAnimInstance::UpdateMovementValues(float DeltaSeconds)
 FVelocityBlend UBaseAnimInstance::CalculateVelocityBlend() const
 {
 	// Normalize character velocity and rotate it back to world forward direction.
-	FVector NormalizedVelocity = Proxy.Velocity.GetSafeNormal(0.1f);
-	FVector LocRelativeVelocityDir = Proxy.ActorRotation.UnrotateVector(NormalizedVelocity);
+	FVector NormalizedVelocity = Proxy->Velocity.GetSafeNormal(0.1f);
+	FVector LocRelativeVelocityDir = Proxy->ActorRotation.UnrotateVector(NormalizedVelocity);
 
 	// Map diagonals vector from 1.0 to 0.5
 	float Sum = FMath::Abs(LocRelativeVelocityDir.X) + FMath::Abs(LocRelativeVelocityDir.Y) + FMath::Abs(LocRelativeVelocityDir.Z);
@@ -344,15 +361,15 @@ float UBaseAnimInstance::CalculateDiagonalScaleAmount() const
 
 FVector UBaseAnimInstance::CalculateRelativeAccelerationAmount() const
 {
-	if (FVector::DotProduct(Proxy.PhysicalAcceleration, Proxy.Velocity) > 0.0f)
+	if (FVector::DotProduct(Proxy->PhysicalAcceleration, Proxy->Velocity) > 0.0f)
 	{
-		FVector ClampedAcceleration = Proxy.PhysicalAcceleration.GetClampedToMaxSize(Proxy.MaxMovementInput);
-		return Proxy.ActorRotation.UnrotateVector(ClampedAcceleration / Proxy.MaxMovementInput);
+		FVector ClampedAcceleration = Proxy->PhysicalAcceleration.GetClampedToMaxSize(Proxy->MaxMovementInput);
+		return Proxy->ActorRotation.UnrotateVector(ClampedAcceleration / Proxy->MaxMovementInput);
 	}
 	else
 	{
-		FVector ClampedDeceleration = Proxy.PhysicalAcceleration.GetClampedToMaxSize(Proxy.MaxBrakingDeceleration);
-		return Proxy.ActorRotation.UnrotateVector(ClampedDeceleration / Proxy.MaxBrakingDeceleration);
+		FVector ClampedDeceleration = Proxy->PhysicalAcceleration.GetClampedToMaxSize(Proxy->MaxBrakingDeceleration);
+		return Proxy->ActorRotation.UnrotateVector(ClampedDeceleration / Proxy->MaxBrakingDeceleration);
 	}
 }
 
@@ -368,7 +385,7 @@ FLeanAmount UBaseAnimInstance::InterpLeanAmount(FLeanAmount Current,
 
 float UBaseAnimInstance::CalculateWalkRunBlend() const
 {
-	if (Proxy.Gait == EGaitState::GS_Walking)
+	if (Proxy->Gait == EGaitState::GS_Walking)
 	{
 		return 0.0f;
 	}
@@ -381,10 +398,10 @@ float UBaseAnimInstance::CalculateStrideBlend() const
 	check(StrideBlendNWalk && StrideBlendNRun && StrideBlendCWalk);
 
 	// Get walk/run stride in current speed
-	float StandingWalkStride = StrideBlendNWalk->GetFloatValue(Proxy.Speed);
-	float StandingRunStride = StrideBlendNRun->GetFloatValue(Proxy.Speed);
+	float StandingWalkStride = StrideBlendNWalk->GetFloatValue(Proxy->Speed);
+	float StandingRunStride = StrideBlendNRun->GetFloatValue(Proxy->Speed);
 	// Get crouch stride in current speed
-	float CrouchingStride = StrideBlendCWalk->GetFloatValue(Proxy.Speed);
+	float CrouchingStride = StrideBlendCWalk->GetFloatValue(Proxy->Speed);
 
 	// Get walk/run's current weight
 	float WalkRunGaitWeight = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
@@ -414,9 +431,9 @@ float UBaseAnimInstance::GetAnimCurveCompact(FName Name) const
 float UBaseAnimInstance::CalculateStandingPlayRate() const
 {
 	// Calculate current speed in different gait's animation speed rate.
-	float WalkSpeedRate = Proxy.Speed / AnimatedWalkSpeed;
-	float RunSpeedRate = Proxy.Speed / AnimatedRunSpeed;
-	float SprintSpeedRate = Proxy.Speed / AnimatedSprintSpeed;
+	float WalkSpeedRate = Proxy->Speed / AnimatedWalkSpeed;
+	float RunSpeedRate = Proxy->Speed / AnimatedRunSpeed;
+	float SprintSpeedRate = Proxy->Speed / AnimatedSprintSpeed;
 
 	// Weight_Gait in Walk Anima == 1, Run Anim == 2, Sprint Anim == 3
 	float WalkRunGaitWeight = GetAnimCurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f);
@@ -435,7 +452,7 @@ float UBaseAnimInstance::CalculateStandingPlayRate() const
 
 float UBaseAnimInstance::CalculateCrouchingPlayRate() const
 {
-	float Result = FMath::Clamp(((Proxy.Speed / AnimatedCrouchSpeed) / StrideBlend) / GetOwningComponent()->GetComponentScale().Z, 0.0f, 2.0f);
+	float Result = FMath::Clamp(((Proxy->Speed / AnimatedCrouchSpeed) / StrideBlend) / GetOwningComponent()->GetComponentScale().Z, 0.0f, 2.0f);
 	return Result;
 }
 
@@ -449,7 +466,7 @@ void UBaseAnimInstance::UpdateRotationValues()
 	// offset the characters rotation for more natural movement.
 	// The curves allow for fine control over how the offset behaves for each movement direction.
 	check(YawOffsetFB && YawOffsetLR);
-	float DeltaYaw = UKismetMathLibrary::NormalizedDeltaRotator(Proxy.Velocity.ToOrientationRotator(), Proxy.AimingRotation).Yaw;
+	float DeltaYaw = UKismetMathLibrary::NormalizedDeltaRotator(Proxy->Velocity.ToOrientationRotator(), Proxy->AimingRotation).Yaw;
 	FYaw = YawOffsetFB->GetVectorValue(DeltaYaw).X;
 	BYaw = YawOffsetFB->GetVectorValue(DeltaYaw).Y;
 	LYaw = YawOffsetLR->GetVectorValue(DeltaYaw).X;
@@ -458,13 +475,13 @@ void UBaseAnimInstance::UpdateRotationValues()
 
 EMovementDirection UBaseAnimInstance::CalculateMovementDirection() const
 {
-	if (Proxy.Gait == EGaitState::GS_Sprinting)
+	if (Proxy->Gait == EGaitState::GS_Sprinting)
 	{
 		return EMovementDirection::MD_Forward;
 	}
 	// Gait == Walking or Running
 	// RotationMode == Looking or Aiming
-	float Angle = UKismetMathLibrary::NormalizedDeltaRotator(UKismetMathLibrary::MakeRotFromX(Proxy.Velocity), Proxy.AimingRotation).Yaw;
+	float Angle = UKismetMathLibrary::NormalizedDeltaRotator(UKismetMathLibrary::MakeRotFromX(Proxy->Velocity), Proxy->AimingRotation).Yaw;
 	return CalculateQuadrant(MovementDirection, 70.0f, -70.0f, 110.0f, -110.0f, 5.0f, Angle);
 }
 
@@ -512,12 +529,12 @@ bool UBaseAnimInstance::AngleInRange(float Angle,
 
 bool UBaseAnimInstance::CanRotateInPlace() const
 {
-	return Proxy.RotationMode == ERotationMode::RM_Aiming;
+	return Proxy->RotationMode == ERotationMode::RM_Aiming;
 }
 
 bool UBaseAnimInstance::CanTurnInPlace() const
 {
-	return Proxy.RotationMode == ERotationMode::RM_Looking && GetCurveValue(FName("Enable_Transition")) > 0.99f;
+	return Proxy->RotationMode == ERotationMode::RM_Looking && GetCurveValue(FName("Enable_Transition")) > 0.99f;
 }
 
 bool UBaseAnimInstance::CanDynamicTransition() const
@@ -536,7 +553,7 @@ void UBaseAnimInstance::RotateInPlaceCheck()
 	// This makes the character rotate faster when moving the camera faster.
 	if (bRotateL || bRotateR)
 	{
-		RotateRate = UKismetMathLibrary::MapRangeClamped(Proxy.AimYawRate,
+		RotateRate = UKismetMathLibrary::MapRangeClamped(Proxy->AimYawRate,
 		                                              AimYawRateMinRange, AimYawRateMaxRange,
 		                                              MinPlayRate, MaxPlayRate);
 	}
@@ -548,7 +565,7 @@ void UBaseAnimInstance::TurnInPlaceCheck(float DeltaTime)
 	// and if the Aim Yaw Rate is below the Aim Yaw Rate Limit.
 	// If so, begin counting the Elapsed Delay Time. If not, reset the Elapsed Delay Time.
 	// This ensures the conditions remain true for a sustained peroid of time before turning in place.
-	if (FMath::Abs(AimingAngle.X) > TurnCheckMinAngle && Proxy.AimYawRate < AimYawRateLimit)
+	if (FMath::Abs(AimingAngle.X) > TurnCheckMinAngle && Proxy->AimYawRate < AimYawRateLimit)
 	{
 		ElapsedDelayTime += DeltaTime;
 		// Step 2: Check if the Elapsed Delay time exceeds the set delay (mapped to the turn angle range).
@@ -556,7 +573,7 @@ void UBaseAnimInstance::TurnInPlaceCheck(float DeltaTime)
 		float MappedAimingAngleX = UKismetMathLibrary::MapRangeClamped(FMath::Abs(AimingAngle.X), TurnCheckMinAngle, 180.0f, MinAngleDelay, MaxAngleDelay);
 		if (ElapsedDelayTime > MappedAimingAngleX)
 		{
-			FRotator TargetRotation(0.0f, Proxy.AimingRotation.Yaw, 0.0f);
+			FRotator TargetRotation(0.0f, Proxy->AimingRotation.Yaw, 0.0f);
 			TurnInPlace(TargetRotation, 1.0f, 0.0f, false);
 		}
 	}
@@ -574,7 +591,7 @@ void UBaseAnimInstance::DynamicTransitionCheck()
 void UBaseAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime, bool bOverrideCurrent)
 {
 	// Step 1: Set Turn Angle
-	float TurnAngle = UKismetMathLibrary::NormalizedDeltaRotator(TargetRotation, Proxy.ActorRotation).Yaw;
+	float TurnAngle = UKismetMathLibrary::NormalizedDeltaRotator(TargetRotation, Proxy->ActorRotation).Yaw;
 
 	// Step 2: Choose Turn Asset based on the Turn Angle and Stance
 	FTurnInPlaceAsset TargetTurnAsset;
@@ -639,15 +656,15 @@ void UBaseAnimInstance::SetFootLockOffsets(FVector& LocalLocation, FRotator& Loc
 	// Use the delta between the current and last updated rotation
 	// to find how much the foot should be rotated to remain planted on the ground.
 	FRotator RotationDifference;
-	if (Proxy.bIsMovingOnGround)
+	if (Proxy->bIsMovingOnGround)
 	{
-		RotationDifference = UKismetMathLibrary::NormalizedDeltaRotator(Proxy.ActorRotation, Proxy.LastUpdateRotation);
+		RotationDifference = UKismetMathLibrary::NormalizedDeltaRotator(Proxy->ActorRotation, Proxy->LastUpdateRotation);
 	}
 
 	// Get the distance traveled between frames relative to the mesh rotation
 	// to find how much the foot should be offset to remain planted on the ground.
 	// Get component's world rotation
-	FVector LocationDifference = GetOwningComponent()->GetComponentRotation().UnrotateVector(Proxy.Velocity * DeltaSeconds);
+	FVector LocationDifference = GetOwningComponent()->GetComponentRotation().UnrotateVector(Proxy->Velocity * DeltaSeconds);
 	
 	// Subtract the location difference from the current local location and rotate it
 	// by the rotation difference to keep the foot planted in component space.
@@ -682,9 +699,9 @@ void UBaseAnimInstance::SetFootOffsets(FName EnableFootIKCurve, FName IKFootBone
 		// UKismetSystemLibrary::LineTraceSingle(Proxy.Character, LineTraceStartLocation, LineTraceEndLocation, UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForOneFrame, HitResult, true);
 		FCollisionQueryParams QueryParams;
 		QueryParams.bTraceComplex = false;
-		QueryParams.AddIgnoredActor(Proxy.Character);
+		QueryParams.AddIgnoredActor(Proxy->Character);
 		GetWorld()->LineTraceSingleByChannel(HitResult, LineTraceStartLocation, LineTraceEndLocation, ECC_Visibility, QueryParams);
-		if (Proxy.MovementComponent->IsWalkable(HitResult))
+		if (Proxy->MovementComponent->IsWalkable(HitResult))
 		{
 			ImpactPoint = HitResult.ImpactPoint;
 			ImpactNormal = HitResult.ImpactNormal;
@@ -741,4 +758,38 @@ void UBaseAnimInstance::SetPelvisIKOffset(FVector FootOffsetLTarget, FVector Foo
 		InterpSpeed = 10.0f;
 	}
 	PelvisOffset = UKismetMathLibrary::VInterpTo(PelvisOffset, PelvisTarget, DeltaSeconds, InterpSpeed);
+}
+
+void UBaseAnimInstance::UpdateInAirValues()
+{
+	// Update the fall speed. Setting this value only while in the air allows you to use it within the AnimGraph for the landing strength.
+	// If not, the Z velocity would return to 0 on landing. 
+	FallSpeed = Proxy->Velocity.Z;
+
+	// Set the Land Prediction weight.
+	LandPrediction = CalculateLandPrediction();
+}
+
+float UBaseAnimInstance::CalculateLandPrediction()
+{
+	if (FallSpeed >= -200.0f) return 0.0f;
+
+	FHitResult HitResult;
+	FVector Start = Proxy->CapsuleLocation;
+	FVector ClampedVelocity = FVector(Proxy->Velocity.X, Proxy->Velocity.Y, FMath::Clamp(Proxy->Velocity.Z, -4000.0f, -200.0f));
+	FVector NormalizedVelocity = ClampedVelocity.GetUnsafeNormal();
+	float MappedFallSpeed = UKismetMathLibrary::MapRangeClamped(Proxy->Velocity.Z, 0.0f, -4000.0f, 50.0f, 2000.0f);
+	FVector End = Start + NormalizedVelocity * MappedFallSpeed;
+	FName ProfileName = "ALS_Character";
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex = false;
+	QueryParams.AddIgnoredActor(Proxy->Character);
+	// UKismetSystemLibrary::CapsuleTraceSingleByProfile()
+	GetWorld()->SweepSingleByProfile(HitResult, Start, End, FQuat::Identity, ProfileName, FCollisionShape::MakeCapsule(Proxy->CapsuleRadius, Proxy->CapsuleHalfHeight), QueryParams);
+	if (Proxy->MovementComponent->IsWalkable(HitResult) && HitResult.bBlockingHit)
+	{
+		return UKismetMathLibrary::Lerp(LandPredictionCurve->GetFloatValue(HitResult.Time), 0.0f, GetCurveValue("Mask_LandPrediction"));
+	}
+	
+	return 0.0f;
 }
